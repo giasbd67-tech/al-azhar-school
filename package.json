@@ -1,0 +1,17 @@
+{
+  "name": "al-azhar-school",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "vite preview"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.30.0",
+    "@vercel/postgres": "^0.8.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}
