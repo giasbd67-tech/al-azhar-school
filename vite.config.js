@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  // এটিই সবচেয়ে গুরুত্বপূর্ণ লাইন। Vite-কে বলা হচ্ছে কোড 'client' ফোল্ডারে আছে।
+  // ভিটে-কে বলা হচ্ছে 'client' ফোল্ডারের ভেতর কাজ শুরু করতে
   root: path.resolve(__dirname, 'client'), 
   plugins: [
     react(),
@@ -28,16 +28,14 @@ export default defineConfig({
       }
     })
   ],
-  // public ফোল্ডারটি client-এর বাইরে আছে
-  publicDir: path.resolve(__dirname, 'public'), 
+  publicDir: path.resolve(__dirname, 'public'), // ছবিগুলো বাইরে public ফোল্ডারে আছে
   build: {
-    // বিল্ড করা ফাইলগুলো বাইরে 'dist' ফোল্ডারে যাবে
     outDir: path.resolve(__dirname, 'dist'),
     emptyOutDir: true
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "."),
+      "@": path.resolve(__dirname, "client"),
     },
   },
 })
