@@ -4,11 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// ES Module-এ পাথ ঠিক করার জন্য
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
+  root: path.resolve(__dirname, 'client'), // ভিটে-কে 'client' ফোল্ডার দেখতে বলা হচ্ছে
   plugins: [
     react(),
     VitePWA({
@@ -19,24 +19,17 @@ export default defineConfig({
         theme_color: '#ffffff',
         icons: [
           {
-            src: 'logo.png', // এটি public ফোল্ডার থেকে ফাইলটি নিবে
+            src: '/logo.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'logo.png',
-            sizes: '512x512',
             type: 'image/png'
           }
         ]
       }
     })
   ],
-  // public ফোল্ডারটিকে স্পষ্টভাবে চিনিয়ে দেওয়া
-  publicDir: 'public', 
-  base: '/', 
+  publicDir: '../public', // যেহেতু রুট এখন client, তাই public এক ধাপ বাইরে
   build: {
-    outDir: 'dist',
+    outDir: '../dist',
     emptyOutDir: true
   },
   resolve: {
