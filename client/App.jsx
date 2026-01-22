@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // এখানে ছোট হাতের i ব্যবহার করা হয়েছে
 
 function App() {
   return (
@@ -31,7 +31,7 @@ function App() {
       <footer className="bg-gray-900 text-gray-300 py-6 border-t border-gray-700">
         <div className="container mx-auto text-center flex flex-col items-center">
           
-          {/* ডেভেলপার ফটো (gias.jpg ফাইলটি আপনি রুট ফোল্ডারে আপলোড করেছেন) */}
+          {/* ডেভেলপার ফটো (public ফোল্ডার থেকে ফাইলটি লোড হবে) */}
           <div className="mb-3">
             <img 
               src="/gias.jpg" 
