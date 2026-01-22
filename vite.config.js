@@ -8,7 +8,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  root: path.resolve(__dirname, 'client'), // ভিটে-কে 'client' ফোল্ডার দেখতে বলা হচ্ছে
+  // ভিটে-কে বলা হচ্ছে আসল কোড 'client' ফোল্ডারে আছে
+  root: path.resolve(__dirname, 'client'), 
   plugins: [
     react(),
     VitePWA({
@@ -19,7 +20,7 @@ export default defineConfig({
         theme_color: '#ffffff',
         icons: [
           {
-            src: '/logo.png',
+            src: '/logo.png', // public ফোল্ডার থেকে লোগো নিবে
             sizes: '192x192',
             type: 'image/png'
           }
@@ -27,9 +28,10 @@ export default defineConfig({
       }
     })
   ],
-  publicDir: '../public', // যেহেতু রুট এখন client, তাই public এক ধাপ বাইরে
+  // public ফোল্ডার এক ধাপ বাইরে আছে
+  publicDir: path.resolve(__dirname, 'public'), 
   build: {
-    outDir: '../dist',
+    outDir: path.resolve(__dirname, 'dist'),
     emptyOutDir: true
   },
   resolve: {
