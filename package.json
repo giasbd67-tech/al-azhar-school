@@ -1,18 +1,24 @@
 {
-  "name": "al-azhar-school",
+  "name": "managed-service",
+  "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "npx prisma generate && npx prisma db push && vite build",
+    "preview": "vite preview",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@prisma/client": "^5.x.x",
+    "react": "^18.x.x",
+    "react-dom": "^18.x.x",
+    "lucide-react": "latest",
+    "framer-motion": "latest"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "@vitejs/plugin-react": "^4.2.0"
+    "@vitejs/plugin-react": "^4.x.x",
+    "prisma": "^5.x.x",
+    "vite": "^5.x.x"
   }
 }
