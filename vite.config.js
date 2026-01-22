@@ -1,9 +1,10 @@
-import { defineConfig } from 'vite' // ছোট হাতের import (সঠিক)
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa' // PWA ইমপোর্ট
+import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+// ES Module-এ পাথ ঠিক করার জন্য
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
@@ -15,11 +16,10 @@ export default defineConfig({
       manifest: {
         name: 'Al-Azhar School',
         short_name: 'Al-Azhar',
-        description: 'Student Management System',
         theme_color: '#ffffff',
         icons: [
           {
-            src: 'logo.png', // আপনার public ফোল্ডারের লোগো
+            src: 'logo.png', // এটি public ফোল্ডার থেকে ফাইলটি নিবে
             sizes: '192x192',
             type: 'image/png'
           },
@@ -32,9 +32,12 @@ export default defineConfig({
       }
     })
   ],
-  base: './', 
+  // public ফোল্ডারটিকে স্পষ্টভাবে চিনিয়ে দেওয়া
+  publicDir: 'public', 
+  base: '/', 
   build: {
     outDir: 'dist',
+    emptyOutDir: true
   },
   resolve: {
     alias: {
