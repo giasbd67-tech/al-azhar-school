@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite' // ছোট হাতের i (সঠিক)
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
@@ -8,8 +8,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  // ভিটে-কে বলা হচ্ছে মেইন ফাইলগুলো 'client' ফোল্ডারের ভেতরে আছে
-  root: './', 
   plugins: [
     react(),
     VitePWA({
@@ -28,7 +26,7 @@ export default defineConfig({
       }
     })
   ],
-  publicDir: 'public', 
+  base: './', 
   build: {
     outDir: 'dist',
     emptyOutDir: true
