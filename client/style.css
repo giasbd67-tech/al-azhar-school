@@ -1,3 +1,9 @@
+/* টেলউইন্ড সিএসএস (এটি না দিলে ডিজাইন কাজ করবে না) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* আপনার দেওয়া কাস্টম সিএসএস কোড */
 body {
     background-color: #f0f2f5;
     margin: 0;
@@ -7,6 +13,7 @@ body {
     align-items: center;
     min-height: 100vh;
 }
+
 .container {
     background: white;
     padding: 40px;
@@ -15,6 +22,20 @@ body {
     text-align: center;
     max-width: 500px;
 }
-h1 { color: #1b6535; margin: 20px 0; }
-p { color: #666; line-height: 1.6; }
-img { width: 150px; height: auto; }
+
+h1 { 
+    color: #1b6535; 
+    margin: 20px 0; 
+}
+
+p { 
+    color: #666; 
+    line-height: 1.6; 
+}
+
+img { 
+    width: 150px; 
+    height: auto; 
+    border-radius: 50%; /* ছবি গোল করার জন্য এটি যোগ করা হয়েছে */
+    object-cover: cover;
+}
