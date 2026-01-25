@@ -1,22 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #1E40AF;
-}
-
 body {
-  font-family: 'Hind Siliguri', sans-serif;
-  background-color: #F8FAFC;
-  color: #1E293B;
-  -webkit-tap-highlight-color: transparent;
+  font-family: 'Hind_Siliguri', sans-serif;
+  background-color: #f8fafc;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+/* বাংলা সংখ্যার বিশেষ ফন্ট সাপোর্ট */
+input, select, button {
+  font-family: 'Hind_Siliguri', sans-serif !important;
 }
