@@ -4,12 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+:root {
   font-family: 'Hind_Siliguri', sans-serif;
-  background-color: #f8fafc;
 }
 
-/* বাংলা সংখ্যার বিশেষ ফন্ট সাপোর্ট */
-input, select, button {
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  background-color: #F1F5F9;
+}
+
+* {
   font-family: 'Hind_Siliguri', sans-serif !important;
 }
