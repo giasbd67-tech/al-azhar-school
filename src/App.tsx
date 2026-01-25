@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Phone, Copy, UserMinus, Calculator, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const toBn = (n: any) => n.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭八৯"[d] || "০১২৩৪৫৬৭৮৯"[d]);
+// বাংলা সংখ্যা রূপান্তর ফাংশন (সংশোধিত)
+const toBn = (n: any) => n.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]);
 
 export default function App() {
   const [students, setStudents] = useState([]);
@@ -48,7 +49,7 @@ export default function App() {
             onChange={(e) => setFilterClass(e.target.value)}
           >
             <option>সব শ্রেণী</option>
-            {['প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম'].map(c => <option key={c}>{c}</option>)}
+            {['প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', '১১দশ', '১২দশ'].map(c => <option key={c}>{c}</option>)}
           </select>
           <button className="bg-[#1E40AF] hover:bg-blue-800 text-white px-8 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition-all active:scale-95">
             <Plus size={20} /> নতুন ভর্তি
@@ -105,6 +106,7 @@ export default function App() {
       <footer className="mt-20 py-12 bg-white border-t border-slate-100 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-24 h-24 rounded-full border-4 border-[#1E40AF] p-1 shadow-2xl">
+            {/* আপনার ছবি এখানে যোগ করতে পারেন, আপাতত প্লেসহোল্ডার */}
             <div className="w-full h-full rounded-full bg-blue-50 flex items-center justify-center text-[#1E40AF] font-black text-2xl">GU</div>
           </div>
           <div>
