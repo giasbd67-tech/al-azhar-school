@@ -6,17 +6,17 @@ app.use(express.json());
 
 const sql = neon(process.env.DATABASE_URL);
 
-// সব ছাত্রের তালিকা আনা
+// ছাত্রদের তালিকা দেখার রুট
 app.get('/api', async (req, res) => {
   try {
-    const result = await sql`SELECT * FROM students ORDER BY class_name, roll ASC`;
-    res.json(result);
+    const data = await sql`SELECT * FROM students ORDER BY id DESC`;
+    res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// নতুন ছাত্র যোগ করা
+// নতুন ছাত্র যোগ করার রুট
 app.post('/api', async (req, res) => {
   const { name, class_name, roll, phone, dues } = req.body;
   try {
