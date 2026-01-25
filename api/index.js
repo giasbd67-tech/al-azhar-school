@@ -1,5 +1,5 @@
-const express = require('express');
-const { neon } = require('@neondatabase/serverless');
+import express from 'express';
+import { neon } from '@neondatabase/serverless';
 
 const app = express();
 app.use(express.json());
@@ -27,4 +27,4 @@ app.post('/api', async (req, res) => {
   }
 });
 
-module.exports = app;
+export default app;
