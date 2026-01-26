@@ -6,7 +6,7 @@ app.use(express.json());
 
 const sql = neon(process.env.DATABASE_URL);
 
-// ছাত্রদের তালিকা দেখার রুট
+// ১. শিক্ষার্থীদের তালিকা দেখা (Read)
 app.get('/api', async (req, res) => {
   try {
     const data = await sql`SELECT * FROM students ORDER BY id DESC`;
@@ -16,7 +16,7 @@ app.get('/api', async (req, res) => {
   }
 });
 
-// নতুন ছাত্র ভর্তি (ভর্তি ফরমের জন্য)
+// ২. নতুন শিক্ষার্থী ভর্তি করা (Create)
 app.post('/api', async (req, res) => {
   const { name, class_name, roll, phone, dues } = req.body;
   try {
@@ -27,7 +27,19 @@ app.post('/api', async (req, res) => {
   }
 });
 
-// ছাত্র ডিলিট করার রুট
+// ৩. শিক্ষার্থীর তথ্য সংশোধন করা (Update)
+app.put('/api/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, class_name, roll, phone, dues } = req.body;
+  try {
+    await sql`UPDATE students SET name=${name}, class_name=${class_name}, roll=${roll}, phone=${phone}, dues=${dues} WHERE id=${id}`;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ৪. শিক্ষার্থী ডিলিট করা (Delete)
 app.delete('/api/:id', async (req, res) => {
   const { id } = req.params;
   try {
