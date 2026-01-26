@@ -28,7 +28,7 @@ app.post('/api', async (req, res) => {
   }
 });
 
-// ৩. শিক্ষার্থীর তথ্য এডিট/সংশোধন
+// ৩. শিক্ষার্থীর তথ্য সংশোধন
 app.put('/api/:id', async (req, res) => {
   const { id } = req.params;
   const { name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues } = req.body;
@@ -44,7 +44,7 @@ app.put('/api/:id', async (req, res) => {
   }
 });
 
-// ৪. বকেয়া টাকা জমা নেওয়া (বকেয়া থেকে বিয়োগ করা)
+// ৪. বকেয়া টাকা জমা নেওয়া (বকেয়া থেকে বিয়োগ)
 app.patch('/api/payment/:id', async (req, res) => {
   const { id } = req.params;
   const { amount } = req.body;
