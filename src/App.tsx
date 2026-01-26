@@ -1,246 +1,168 @@
+/**
+ * স্মার্ট স্কুল ম্যানেজমেন্ট সিস্টেম
+ * অ্যাপ ডেভেলপার: গিয়াস উদ্দিন
+ */
+
 import React, { useState, useEffect } from 'react';
-import { Search, Phone, School, Plus, X, Trash2, Edit3, UserCircle, Save, Filter, Copy, Banknote, MessageSquareWarning, CheckCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  LayoutDashboard, Users, UserCheck, Wallet, QrCode, 
+  Send, Plus, Landmark, TrendingUp, TrendingDown, 
+  CheckCircle, School, Download, BrainCircuit, Banknote, BadgeCheck
+} from 'lucide-react';
 
-const toBn = (n: any) => n?.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]) || "০";
-const CLASSES = ['সব শ্রেণী', 'প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', 'একাদশ', 'দ্বাদশ'];
+const toBn = (n: any) => n?.toLocaleString('bn-BD') || "০";
 
-export default function App() {
+export default function SchoolApp() {
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [students, setStudents] = useState([]);
-  const [search, setSearch] = useState('');
-  const [filterClass, setFilterClass] = useState('সব শ্রেণী');
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [teachers, setTeachers] = useState([]);
+  const [stats, setStats] = useState<any>({ total_dues: 0, today_collection: 0, total_teacher_dues: 0, total_expense: 0 });
+  const [aiInsights, setAiInsights] = useState([]);
 
-  const initialForm = { 
-    name: '', father_name: '', class_name: '১ম', roll: '', phone: '', gender: 'ছাত্র', address: '',
-    monthly_fee: 0, exam_fee: 0, other_fee: 0, previous_dues: 0, dues: 0 
-  };
-  const [formData, setFormData] = useState(initialForm);
+  useEffect(() => { loadAllData(); }, [activeTab]);
 
-  useEffect(() => { fetchData(); }, []);
-
-  // বকেয়া টাকা অটোমেটিক যোগফল করার লজিক
-  useEffect(() => {
-    const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + Number(formData.other_fee) + Number(formData.previous_dues);
-    setFormData(prev => ({ ...prev, dues: total }));
-  }, [formData.monthly_fee, formData.exam_fee, formData.other_fee, formData.previous_dues]);
-
-  const fetchData = () => {
-    fetch('/api').then(res => res.json()).then(data => {
-      setStudents(Array.isArray(data) ? data : []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+  const loadAllData = async () => {
+    try {
+      const [st, stat, ai, tc] = await Promise.all([
+        fetch('/api/students').then(r => r.json()),
+        fetch('/api/dashboard').then(r => r.json()),
+        fetch('/api/ai/insights').then(r => r.json()),
+        fetch('/api/teachers').then(r => r.json())
+      ]);
+      setStudents(st); setStats(stat); setAiInsights(ai); setTeachers(tc);
+    } catch (e) { console.error("Error loading data"); }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const method = editingId ? 'PUT' : 'POST';
-    await fetch(editingId ? `/api/${editingId}` : '/api', {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+  const paySalary = async (id: number, name: string, dues: number) => {
+    const amount = prompt(`${name}-কে কত টাকা স্যালারি দিতে চান? (বকেয়া: ${dues})`);
+    if (!amount || isNaN(Number(amount))) return;
+    await fetch('/api/teachers/pay-salary', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ id, name, amount: Number(amount) })
     });
-    closeForm();
-    fetchData();
+    loadAllData();
   };
-
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await fetch(`/api/payment/${selectedStudent.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: Number(paymentAmount) })
-    });
-    setShowPaymentModal(false);
-    setPaymentAmount('');
-    fetchData();
-    alert('টাকা জমা হয়েছে!');
-  };
-
-  const closeForm = () => { setShowForm(false); setEditingId(null); setFormData(initialForm); };
-
-  const copyDueMsg = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ থেকে জানানো যাচ্ছে যে, আপনার সন্তান ${st.name}-এর মাসিক বেতন, পরীক্ষা ফি ও অন্যান্য ফি বাবদ মোট বকেয়া ${toBn(st.dues)} টাকা। দ্রুত পরিশোধ করার জন্য অনুরোধ করা হলো। ধন্যবাদ।`;
-    navigator.clipboard.writeText(msg);
-    alert('বকেয়া মেসেজ কপি হয়েছে!');
-  };
-
-  const copyAbsentMsg = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আজ আপনার সন্তান ${st.name} (শ্রেণী: ${st.class_name}) স্কুলে উপস্থিত নেই। অনুপস্থিতির সঠিক কারণটি আমাদের জানানোর জন্য অনুরোধ করা হলো। ইতি, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ।`;
-    navigator.clipboard.writeText(msg);
-    alert('অনুপস্থিতি মেসেজ কপি হয়েছে!');
-  };
-
-  const filtered = students.filter((st: any) => 
-    (st.name.toLowerCase().includes(search.toLowerCase()) || st.roll.includes(search)) && 
-    (filterClass === 'সব শ্রেণী' || st.class_name === filterClass)
-  );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
-      <header className="bg-blue-700 text-white pt-10 pb-20 px-4 text-center">
-        <School size={40} className="mx-auto mb-2 text-yellow-400" />
-        <h1 className="text-xl font-bold">আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ</h1>
-        <p className="text-[10px] opacity-80 mt-1">ঠিকানাঃ নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী।</p>
-      </header>
-
-      <main className="max-w-4xl mx-auto -mt-10 px-4">
-        <div className="bg-white p-4 rounded-3xl shadow-lg flex flex-col md:flex-row gap-3 mb-6 border border-blue-50">
-          <div className="flex-grow relative">
-            <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
-            <input placeholder="নাম বা রোল দিয়ে খুঁজুন..." className="w-full pl-11 p-3.5 bg-slate-100 rounded-2xl outline-none" onChange={e => setSearch(e.target.value)} />
+    <div className="min-h-screen bg-slate-50 pb-32 font-sans antialiased">
+      <nav className="bg-[#1E293B] text-white p-5 sticky top-0 z-50 shadow-2xl flex justify-between items-center rounded-b-[2rem]">
+        <div className="flex items-center gap-3">
+          <div className="bg-yellow-400 p-2.5 rounded-2xl text-slate-900 shadow-lg">
+            <School size={24} />
           </div>
-          <select className="p-3.5 bg-slate-100 rounded-2xl outline-none font-bold text-slate-600" onChange={e => setFilterClass(e.target.value)}>
-            {CLASSES.map(c => <option key={c}>{c}</option>)}
-          </select>
-          <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black shadow-lg shadow-blue-200">
-            <Plus size={20}/> নতুন ভর্তি
-          </button>
+          <div>
+            <h1 className="font-black text-xl tracking-tight">আল-আজহার স্কুল</h1>
+            <p className="text-[9px] uppercase font-bold text-yellow-400 tracking-widest italic">Smart School OS</p>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((st: any) => (
-            <div key={st.id} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-200">
-              <div className="flex justify-between mb-3">
-                <div className={`p-2.5 rounded-xl ${st.gender === 'ছাত্রী' ? 'bg-pink-50 text-pink-500' : 'bg-blue-50 text-blue-500'}`}>
-                   <UserCircle size={24} />
-                </div>
-                <div className="flex gap-2">
-                  <Edit3 size={18} className="text-slate-300 cursor-pointer hover:text-blue-600" onClick={() => { setEditingId(st.id); setFormData(st); setShowForm(true); }} />
-                  <Trash2 size={18} className="text-slate-300 cursor-pointer hover:text-red-500" onClick={async () => { if(confirm('ডিলিট করবেন?')) { await fetch(`/api/${st.id}`, {method:'DELETE'}); fetchData(); } }} />
-                </div>
-              </div>
-              <h3 className="font-black text-lg text-slate-800">{st.name}</h3>
-              <p className="text-[11px] text-slate-500 font-bold mb-4">পিতা: {st.father_name} | শ্রেণী: {st.class_name} | রোল: {toBn(st.roll)}</p>
-              
-              <div className="p-3 bg-red-50 rounded-2xl flex justify-between items-center border border-red-100 mb-4">
-                <span className="text-red-600 font-bold text-[10px]">মোট বকেয়া:</span>
-                <span className="text-red-600 font-black text-xl">৳{toBn(st.dues)}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => { setSelectedStudent(st); setShowPaymentModal(true); }} className="bg-emerald-50 text-emerald-700 p-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1"><Banknote size={14}/>বকেয়া পরিশোধ</button>
-                <button onClick={() => copyDueMsg(st)} className="bg-amber-50 text-amber-700 p-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1"><Copy size={14}/>বকেয়া কপি</button>
-                <button onClick={() => copyAbsentMsg(st)} className="bg-rose-50 text-rose-700 p-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1"><MessageSquareWarning size={14}/>অনুপস্থিতি কপি</button>
-                <a href={`tel:${st.phone}`} className="bg-slate-900 text-white p-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1"><Phone size={14}/>কল দিন</a>
-              </div>
-            </div>
-          ))}
+        <div className="flex gap-4">
+           <button onClick={() => setActiveTab('qr')} className="text-slate-400 hover:text-white"><QrCode/></button>
+           <button onClick={() => setActiveTab('dashboard')} className="text-slate-400 hover:text-white"><LayoutDashboard/></button>
         </div>
+      </nav>
 
-        <footer className="mt-20 py-10 text-center border-t border-slate-200">
-          <p className="text-slate-400 font-bold text-xs">অ্যাপ ডেভেলপারঃ <span className="text-blue-600">গিয়াস উদ্দিন</span></p>
-        </footer>
+      <main className="max-w-6xl mx-auto p-4 md:p-6">
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatBox title="ছাত্র বকেয়া" value={stats.total_dues} color="border-orange-500" icon={<Landmark/>}/>
+              <StatBox title="আজকের আদায়" value={stats.today_collection} color="border-emerald-500" icon={<TrendingUp/>}/>
+              <StatBox title="শিক্ষক বকেয়া" value={stats.total_teacher_dues} color="border-rose-500" icon={<Banknote/>}/>
+              <StatBox title="মোট খরচ" value={stats.total_expense} color="border-blue-500" icon={<TrendingDown/>}/>
+            </div>
 
-        {/* ভর্তি ফরম মডাল */}
-        <AnimatePresence>
-          {showForm && (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <motion.div initial={{y:50, opacity: 0}} animate={{y:0, opacity: 1}} className="bg-white w-full max-w-lg rounded-[2.5rem] p-6 max-h-[90vh] overflow-y-auto shadow-2xl relative">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="font-black text-xl text-blue-900">{editingId ? 'তথ্য সংশোধন' : 'ভর্তি ফরম'}</h2>
-                  <X className="cursor-pointer text-slate-400" onClick={closeForm}/>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-[2.5rem] text-white shadow-xl">
+                 <h3 className="font-bold text-sm mb-4 tracking-tight">ছাত্র মাসিক ফি জেনারেট</h3>
+                 <button onClick={() => fetch('/api/billing/auto', {method:'POST'}).then(() => loadAllData())} className="bg-white text-blue-700 px-8 py-3 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all">রান অটো-বিলিং</button>
+              </div>
+              <div className="bg-gradient-to-br from-rose-500 to-rose-700 p-6 rounded-[2.5rem] text-white shadow-xl">
+                 <h3 className="font-bold text-sm mb-4 tracking-tight">শিক্ষক স্যালারি জেনারেট</h3>
+                 <button onClick={() => fetch('/api/teachers/generate-salary', {method:'POST'}).then(() => loadAllData())} className="bg-white text-rose-700 px-8 py-3 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all">রান অটো-স্যালারি</button>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+               <h3 className="font-black text-slate-800 flex items-center gap-2 mb-4"><BrainCircuit className="text-indigo-600"/> AI পারফরম্যান্স এলার্ট</h3>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {aiInsights.map((st:any, i) => (
+                    <div key={i} className="flex justify-between items-center bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                       <span className="font-black text-xs text-slate-700">{st.name}</span>
+                       <span className="text-[9px] font-black bg-rose-100 text-rose-600 px-3 py-1.5 rounded-full uppercase">অ্যাকশন প্রয়োজন</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <MenuBtn label="শিক্ষার্থী" icon={<Users/>} onClick={() => setActiveTab('students')} color="bg-blue-50 text-blue-600"/>
+              <MenuBtn label="শিক্ষক" icon={<UserCheck/>} onClick={() => setActiveTab('teachers')} color="bg-rose-50 text-rose-600"/>
+              <MenuBtn label="হাজিরা" icon={<QrCode/>} onClick={() => setActiveTab('qr')} color="bg-emerald-50 text-emerald-600"/>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'teachers' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-in fade-in duration-500">
+            {teachers.map((t: any) => (
+              <div key={t.id} className="bg-white p-7 rounded-[3rem] shadow-sm border border-slate-100 relative group transition-all hover:shadow-2xl">
+                <div className="flex justify-between items-start mb-5">
+                   <div className="bg-rose-50 p-4 rounded-3xl text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-all"><UserCheck size={24}/></div>
+                   <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{t.designation}</span>
                 </div>
-                
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">ব্যক্তিগত তথ্য</p>
-                    
-                    {/* নাম (Label + Input) */}
-                    <div className="space-y-1">
-                      <label className="text-[12px] font-black text-slate-700 ml-1">শিক্ষার্থীর নাম (Name)</label>
-                      <input required placeholder="এম এস সাদী মিনার/এম এস ফাদি মিহাল" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
-                    </div>
-
-                    {/* পিতার নাম (Label + Input) */}
-                    <div className="space-y-1">
-                      <label className="text-[12px] font-black text-slate-700 ml-1">পিতার নাম (Father's Name)</label>
-                      <input required placeholder="গিয়াস উদ্দিন" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[12px] font-black text-slate-700 ml-1">লিঙ্গ</label>
-                        <select className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none font-bold bg-slate-50/50" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                          <option>ছাত্র</option><option>ছাত্রী</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[12px] font-black text-slate-700 ml-1">রোল নং</label>
-                        <input required type="number" placeholder="রোল নং" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.roll} onChange={e => setFormData({...formData, roll: e.target.value})} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[12px] font-black text-slate-700 ml-1">শ্রেণী</label>
-                        <select className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none font-bold bg-slate-50/50" value={formData.class_name} onChange={e => setFormData({...formData, class_name: e.target.value})}>
-                          {CLASSES.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[12px] font-black text-slate-700 ml-1">মোবাইল নং</label>
-                        <input required placeholder="মোবাইল নম্বর" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
-                      </div>
-                    </div>
-
-                    {/* ঠিকানা (Label + Textarea) */}
-                    <div className="space-y-1">
-                      <label className="text-[12px] font-black text-slate-700 ml-1">ঠিকানা (Address)</label>
-                      <textarea placeholder="নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none h-20 resize-none bg-slate-50/50" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50/50 p-5 rounded-[2rem] border border-blue-100 space-y-4">
-                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest border-b border-blue-100/50 pb-1">ফি এবং বকেয়া (অটো ক্যালকুলেশন)</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="number" placeholder="বেতন" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.monthly_fee || ''} onChange={e => setFormData({...formData, monthly_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="পরীক্ষা ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.exam_fee || ''} onChange={e => setFormData({...formData, exam_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="অন্যান্য ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.other_fee || ''} onChange={e => setFormData({...formData, other_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="পূর্বের বকেয়া" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.previous_dues || ''} onChange={e => setFormData({...formData, previous_dues: Number(e.target.value)})} />
-                    </div>
-                    <div className="p-4 bg-white rounded-2xl flex justify-between items-center shadow-sm border border-blue-100">
-                      <span className="font-bold text-slate-600">মোট বকেয়া:</span>
-                      <span className="text-2xl font-black text-blue-600">৳{toBn(formData.dues)}</span>
-                    </div>
-                  </div>
-
-                  <button className="w-full bg-blue-600 text-white p-4 rounded-2xl font-black shadow-lg shadow-blue-200 flex items-center justify-center gap-2 hover:bg-blue-700 transition-all">
-                    <Save size={20}/> সংরক্ষণ করুন
-                  </button>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* পেমেন্ট মডাল */}
-        <AnimatePresence>
-          {showPaymentModal && selectedStudent && (
-            <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-              <motion.div initial={{scale:0.9, opacity: 0}} animate={{scale:1, opacity: 1}} className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl relative">
-                <button onClick={() => setShowPaymentModal(false)} className="absolute top-6 right-6 text-slate-300 hover:text-red-500"><X size={24}/></button>
-                <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 font-black text-3xl italic">৳</div>
-                <h3 className="font-black text-xl text-slate-800">{selectedStudent.name}</h3>
-                <p className="text-slate-400 text-sm mb-6">বর্তমান বকেয়া: <span className="text-red-500 font-bold">৳{toBn(selectedStudent.dues)}</span></p>
-                
-                <form onSubmit={handlePaymentSubmit}>
-                  <input autoFocus required type="number" placeholder="জমা টাকার পরিমাণ" className="w-full p-5 bg-slate-50 border-2 border-emerald-100 rounded-2xl text-center text-3xl font-black text-emerald-700 outline-none focus:border-emerald-500 mb-4" 
-                    value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} />
-                  <button type="submit" className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-200 hover:bg-emerald-700 flex items-center justify-center gap-2">
-                    <CheckCircle size={20}/> জমা নিশ্চিত করুন
-                  </button>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+                <h3 className="font-black text-xl text-slate-800 mb-6">{t.name}</h3>
+                <div className={`p-5 rounded-[2rem] flex justify-between items-center mb-6 ${t.salary_dues > 0 ? 'bg-rose-50' : 'bg-emerald-50'}`}>
+                   <div>
+                      <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">পাওনা বেতন</span>
+                      <span className={`text-2xl font-black ${t.salary_dues > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>৳{toBn(t.salary_dues)}</span>
+                   </div>
+                   {t.salary_dues === 0 && <BadgeCheck className="text-emerald-500" size={30}/>}
+                </div>
+                <button 
+                  disabled={t.salary_dues <= 0}
+                  onClick={() => paySalary(t.id, t.name, t.salary_dues)}
+                  className={`w-full py-4 rounded-[1.5rem] font-black text-xs shadow-lg transition-all ${t.salary_dues > 0 ? 'bg-[#0F172A] text-white active:scale-95' : 'bg-slate-100 text-slate-300'}`}
+                >
+                  স্যালারি প্রদান করুন
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
+
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 p-5 flex justify-between items-center px-10 shadow-2xl rounded-t-[2.5rem]">
+        <div className="flex flex-col">
+          <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1">Developed By</span>
+          <span className="text-sm font-black text-blue-700 tracking-tight">অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</span>
+        </div>
+        <div className="flex gap-8 text-slate-300">
+           <button onClick={() => setActiveTab('dashboard')} className={activeTab === 'dashboard' ? 'text-blue-600' : ''}><LayoutDashboard size={24}/></button>
+           <button onClick={() => setActiveTab('teachers')} className={activeTab === 'teachers' ? 'text-blue-600' : ''}><UserCheck size={24}/></button>
+           <button onClick={() => setActiveTab('students')} className={activeTab === 'students' ? 'text-blue-600' : ''}><Users size={24}/></button>
+           <button onClick={() => setActiveTab('qr')} className={activeTab === 'qr' ? 'text-blue-600' : ''}><QrCode size={24}/></button>
+        </div>
+      </footer>
     </div>
+  );
+}
+
+function StatBox({title, value, color, icon}: any) {
+  return (
+    <div className={`bg-white p-5 rounded-[2rem] shadow-sm border-b-4 ${color}`}>
+      <div className="flex justify-between items-center mb-2 font-black text-slate-400 text-[10px] uppercase">
+        {title} {icon}
+      </div>
+      <h2 className="text-xl font-black text-slate-800">৳{toBn(value || 0)}</h2>
+    </div>
+  );
+}
+
+function MenuBtn({label, icon, onClick, color}: any) {
+  return (
+    <button onClick={onClick} className={`${color} p-6 rounded-[2.5rem] flex flex-col items-center gap-2 font-black text-[10px] uppercase shadow-sm active:scale-90 transition-all border border-white`}>
+      {icon} {label}
+    </button>
   );
 }
