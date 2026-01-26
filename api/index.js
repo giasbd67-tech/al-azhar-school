@@ -6,7 +6,7 @@ app.use(express.json());
 
 const sql = neon(process.env.DATABASE_URL);
 
-// শিক্ষার্থীদের তালিকা
+// ১. শিক্ষার্থীদের তালিকা দেখা
 app.get('/api', async (req, res) => {
   try {
     const data = await sql`SELECT * FROM students ORDER BY id DESC`;
@@ -16,7 +16,7 @@ app.get('/api', async (req, res) => {
   }
 });
 
-// নতুন ভর্তি
+// ২. নতুন শিক্ষার্থী ভর্তি
 app.post('/api', async (req, res) => {
   const { name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues } = req.body;
   try {
@@ -28,7 +28,7 @@ app.post('/api', async (req, res) => {
   }
 });
 
-// তথ্য সংশোধন
+// ৩. শিক্ষার্থীর তথ্য এডিট/সংশোধন
 app.put('/api/:id', async (req, res) => {
   const { id } = req.params;
   const { name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues } = req.body;
@@ -44,7 +44,7 @@ app.put('/api/:id', async (req, res) => {
   }
 });
 
-// বকেয়া টাকা জমা নেওয়া (বকেয়া থেকে বিয়োগ হবে)
+// ৪. বকেয়া টাকা জমা নেওয়া (বকেয়া থেকে বিয়োগ করা)
 app.patch('/api/payment/:id', async (req, res) => {
   const { id } = req.params;
   const { amount } = req.body;
@@ -56,7 +56,7 @@ app.patch('/api/payment/:id', async (req, res) => {
   }
 });
 
-// ডিলিট
+// ৫. শিক্ষার্থী ডিলিট করা
 app.delete('/api/:id', async (req, res) => {
   const { id } = req.params;
   try {
