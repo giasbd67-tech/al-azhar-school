@@ -1,19 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+
 :root {
-  font-family: 'Hind_Siliguri', sans-serif;
+  font-family: 'Hind Siliguri', sans-serif;
 }
 
 body {
   margin: 0;
+  background-color: #F8FAFC;
   -webkit-font-smoothing: antialiased;
-  background-color: #F1F5F9;
 }
 
 * {
-  font-family: 'Hind_Siliguri', sans-serif !important;
+  font-family: 'Hind Siliguri', sans-serif !important;
 }
