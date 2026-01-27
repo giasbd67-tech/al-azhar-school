@@ -1,5 +1,5 @@
 /**
- * প্রজেক্ট: আল-আজহার স্কুল ম্যানেজমেন্ট (Full Suite)
+ * প্রজেক্ট: আল-আজহার স্কুল স্মার্ট ম্যানেজমেন্ট
  * অ্যাপ ডেভেলপার: গিয়াস উদ্দিন
  */
 import express from 'express';
@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 const sql = neon(process.env.DATABASE_URL);
 
-// ১. ড্যাশবোর্ড স্ট্যাটস
+// ১. ড্যাশবোর্ড ডাটা (বকেয়া ও কালেকশন)
 app.get('/api/dashboard', async (req, res) => {
   try {
     const stats = await sql`
@@ -23,7 +23,7 @@ app.get('/api/dashboard', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ২. অটো-বিলিং ও স্যালারি জেনারেশন
+// ২. অটো-বিলিং ও স্যালারি লজিক
 app.post('/api/billing/auto', async (req, res) => {
   await sql`UPDATE students SET dues = dues + monthly_fee`;
   res.json({ success: true });
@@ -34,16 +34,16 @@ app.post('/api/teachers/generate-salary', async (req, res) => {
   res.json({ success: true });
 });
 
-// ৩. টিচার স্যালারি প্রদান
-app.post('/api/teachers/pay-salary', async (req, res) => {
-  const { id, name, amount } = req.body;
-  await sql`UPDATE teachers SET salary_dues = salary_dues - ${amount} WHERE id = ${id}`;
-  await sql`INSERT INTO expenses (title, amount, category) VALUES (${'Salary: ' + name}, ${amount}, 'Salary')`;
-  res.json({ success: true });
-});
-
-// ৪. ডেটা রিড
+// ৩. ডাটা এন্ট্রি ও রিড
 app.get('/api/students', async (req, res) => res.json(await sql`SELECT * FROM students ORDER BY id DESC`));
 app.get('/api/teachers', async (req, res) => res.json(await sql`SELECT * FROM teachers ORDER BY id DESC`));
+
+app.post('/api/students', async (req, res) => {
+  const { name, father_name, class_name, roll, phone, monthly_fee, exam_fee, other_fee, previous_dues } = req.body;
+  const initial_dues = Number(monthly_fee) + Number(exam_fee) + Number(other_fee) + Number(previous_dues);
+  await sql`INSERT INTO students (name, father_name, class_name, roll, phone, monthly_fee, exam_fee, other_fee, previous_dues, dues) 
+            VALUES (${name}, ${father_name}, ${class_name}, ${roll}, ${phone}, ${monthly_fee}, ${exam_fee}, ${other_fee}, ${previous_dues}, ${initial_dues})`;
+  res.json({ success: true });
+});
 
 export default app;
