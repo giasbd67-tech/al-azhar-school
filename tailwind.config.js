@@ -6,12 +6,9 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        primary: '#1E40AF',
-      },
       fontFamily: {
-        bengali: ['Hind Siliguri', 'sans-serif'],
-      }
+        sans: ['Hind Siliguri', 'sans-serif'],
+      },
     },
   },
   plugins: [],
