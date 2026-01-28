@@ -7,10 +7,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import QRCode from 'react-qr-code';
 
+// কনফিগারেশন
 const CLASS_LIST = ["প্লে", "নার্সারি", "কেজি", "১ম", "২য়", "৩য়", "৪র্থ", "৫ম", "৬ষ্ঠ", "৭ম", "৮ম", "৯ম", "১০ম", "একাদশ", "দ্বাদশ"];
 const API_URL = "http://localhost:3000/api";
 
 export default function AlAzharSmartOS() {
+  // ১. সকল স্টেট (States)
   const [activeTab, setActiveTab] = useState('dashboard');
   const [students, setStudents] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -21,6 +23,14 @@ export default function AlAzharSmartOS() {
   const [payAmount, setPayAmount] = useState('');
   const [showReceipt, setShowReceipt] = useState(false);
 
+  // ভর্তি ফরম স্টেট
+  const [formData, setFormData] = useState({
+    name: '', father_name: '', address: '', gender: 'ছাত্র', 
+    class_name: 'প্লে', roll: '', phone: '',
+    monthly_fee: '0', exam_fee: '0', other_fee: '0', previous_dues: '0'
+  });
+
+  // ২. ডাটা লোড করা
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
@@ -31,21 +41,28 @@ export default function AlAzharSmartOS() {
       const tRes = await fetch(`${API_URL}/teachers`);
       const tData = await tRes.json();
       setTeachers(Array.isArray(tData) ? tData : []);
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("ডাটা লোড করতে সমস্যা:", err); }
   };
 
+  // ৩. নতুন স্টুডেন্ট সেভ করা
   const handleSaveStudent = async () => {
-    const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + Number(formData.other_fee) + Number(formData.previous_dues);
+    const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + 
+                  Number(formData.other_fee) + Number(formData.previous_dues);
     try {
       const res = await fetch(`${API_URL}/students`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, total_dues: total }),
       });
-      if (res.ok) { fetchData(); setShowForm(false); alert("সফলভাবে ভর্তি করা হয়েছে!"); }
-    } catch (error) { alert("সমস্যা হয়েছে!"); }
+      if (res.ok) { 
+        fetchData(); 
+        setShowForm(false); 
+        alert("সফলভাবে ভর্তি করা হয়েছে!"); 
+      }
+    } catch (error) { alert("সেভ করতে সমস্যা হয়েছে!"); }
   };
 
+  // ৪. পেমেন্ট বা টাকা জমা নেওয়া
   const handlePayment = async () => {
     if (!payAmount || Number(payAmount) <= 0) return alert("সঠিক পরিমাণ লিখুন");
     try {
@@ -55,24 +72,19 @@ export default function AlAzharSmartOS() {
         body: JSON.stringify({ amount: Number(payAmount) }),
       });
       if (res.ok) {
-        await fetchData();
+        await fetchData(); // লিস্ট আপডেট
         setShowPayModal(false);
-        setShowReceipt(true);
+        setShowReceipt(true); // রশিদ দেখানো
       }
-    } catch (err) { alert("পেমেন্ট ব্যর্থ হয়েছে"); }
+    } catch (err) { alert("পেমেন্ট আপডেট করতে সমস্যা হয়েছে"); }
   };
-
-  const [formData, setFormData] = useState({
-    name: '', father_name: '', address: '', gender: 'ছাত্র', 
-    class_name: 'প্লে', roll: '', phone: '',
-    monthly_fee: '0', exam_fee: '0', other_fee: '0', previous_dues: '0'
-  });
 
   const totalDuesCalc = Number(formData.monthly_fee) + Number(formData.exam_fee) + 
                        Number(formData.other_fee) + Number(formData.previous_dues);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-32 font-sans overflow-x-hidden">
+      {/* হেডার */}
       <header className="bg-[#1E3A8A] text-white p-8 rounded-b-[3.5rem] shadow-2xl relative">
         <div className="flex items-center gap-5 max-w-5xl mx-auto">
           <img src="/logo.png" alt="Logo" className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-xl" />
@@ -84,6 +96,7 @@ export default function AlAzharSmartOS() {
       </header>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
+        {/* ড্যাশবোর্ড ট্যাব */}
         {activeTab === 'dashboard' && (
           <div className="grid grid-cols-2 gap-4 mt-[-40px]">
             <StatCard title="শিক্ষার্থী" value={students.length} icon={<Users/>} color="bg-blue-600" />
@@ -93,6 +106,7 @@ export default function AlAzharSmartOS() {
           </div>
         )}
 
+        {/* শিক্ষার্থী তালিকা ট্যাব */}
         {activeTab === 'students' && (
           <div className="space-y-4">
             <button onClick={() => setShowForm(true)} className="w-full bg-[#1E3A8A] text-white p-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-lg">
@@ -123,43 +137,48 @@ export default function AlAzharSmartOS() {
         )}
       </main>
 
-      {/* পেমেন্ট মডাল */}
+      {/* ৫. পেমেন্ট মডাল (টাকা জমার ঘর) */}
       <AnimatePresence>
         {showPayModal && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
             <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 space-y-6 shadow-2xl">
               <div className="text-center">
                 <h3 className="font-black text-xl">টাকা জমা নিন</h3>
                 <p className="text-sm text-slate-400 font-bold">{selectedStudent?.name}</p>
               </div>
               <Input label="জমার পরিমাণ (৳)" type="number" value={payAmount} onChange={setPayAmount} placeholder="500" />
-              <button onClick={handlePayment} className="w-full bg-emerald-600 text-white py-5 rounded-3xl font-black text-lg">জমা নিশ্চিত করুন</button>
+              <button onClick={handlePayment} className="w-full bg-emerald-600 text-white py-5 rounded-3xl font-black text-lg active:scale-95 transition-all">জমা নিশ্চিত করুন</button>
               <button onClick={() => setShowPayModal(false)} className="w-full text-slate-400 font-bold">বাতিল</button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* রশিদ মডাল */}
+      {/* ৬. ডিজিটাল রশিদ মডাল (Receipt) */}
       <AnimatePresence>
         {showReceipt && (
-          <motion.div initial={{scale:0.9}} animate={{scale:1}} className="fixed inset-0 bg-slate-900/90 z-[400] flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm space-y-6 relative receipt-box">
-              <button onClick={() => setShowReceipt(false)} className="absolute top-6 right-6 text-slate-300"><X/></button>
+          <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className="fixed inset-0 bg-slate-900/90 z-[400] flex items-center justify-center p-4">
+            <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm space-y-6 relative">
+              <button onClick={() => setShowReceipt(false)} className="absolute top-6 right-6 text-slate-300 p-2"><X/></button>
               <div className="text-center border-b pb-4">
-                <h2 className="font-black text-blue-900">আল-আজহার স্কুল</h2>
-                <p className="text-[10px] font-bold text-slate-400">টাকা প্রাপ্তির রশিদ</p>
+                <h2 className="font-black text-blue-900 text-xl tracking-tighter">আল-আজহার স্কুল এন্ড কলেজ</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">পেমেন্ট রশিদ</p>
               </div>
-              <div className="space-y-2 text-sm">
-                <p className="flex justify-between"><span>ছাত্র:</span> <b>{selectedStudent?.name}</b></p>
-                <p className="flex justify-between"><span>জমা:</span> <b className="text-emerald-600">৳{payAmount}</b></p>
-                <p className="flex justify-between border-t pt-2"><span>বকেয়া:</span> <b>৳{selectedStudent?.total_dues - Number(payAmount)}</b></p>
+              <div className="space-y-3 text-sm">
+                <div className="bg-slate-50 p-4 rounded-2xl">
+                  <p className="flex justify-between"><span>ছাত্র:</span> <b className="text-slate-800">{selectedStudent?.name}</b></p>
+                  <p className="flex justify-between"><span>রোল:</span> <b>{selectedStudent?.roll}</b></p>
+                </div>
+                <p className="flex justify-between items-center py-2 px-4 border-y border-dashed border-slate-200">
+                  <span className="font-bold text-slate-500">জমা:</span> 
+                  <b className="text-2xl font-black text-emerald-600">৳{payAmount}</b>
+                </p>
               </div>
               <div className="text-center pt-4 border-t border-dashed">
-                <p className="text-[9px] font-bold text-slate-400 italic">সফটওয়্যার ডেভেলপার</p>
-                <p className="text-[11px] font-black text-blue-900">অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</p>
+                <p className="text-[9px] font-bold text-slate-400 italic">সফটওয়্যারটি তৈরি করেছেন</p>
+                <p className="text-[11px] font-black text-blue-900 uppercase">অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</p>
               </div>
-              <button onClick={() => window.print()} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2">
+              <button onClick={() => window.print()} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg">
                 <Printer size={18}/> রশিদ প্রিন্ট করুন
               </button>
             </div>
@@ -167,37 +186,41 @@ export default function AlAzharSmartOS() {
         )}
       </AnimatePresence>
 
+      {/* ৭. ভর্তি ফরম মডাল */}
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} className="fixed inset-0 bg-black/60 z-[200] flex items-end">
             <div className="bg-white w-full h-[90vh] rounded-t-[4rem] flex flex-col overflow-hidden">
-              <div className="p-8 bg-[#1E3A8A] text-white flex justify-between items-center">
-                <h2 className="text-xl font-black">নতুন শিক্ষার্থী ভর্তি</h2>
+              <div className="p-8 bg-[#1E3A8A] text-white flex justify-between items-center shrink-0">
+                <h2 className="text-xl font-black tracking-tight">নতুন শিক্ষার্থী ভর্তি</h2>
                 <button onClick={() => setShowForm(false)} className="p-2 bg-white/20 rounded-full"><X/></button>
               </div>
-              <div className="flex-1 overflow-y-auto p-8 space-y-5">
-                <Input label="নাম" onChange={(v:any) => setFormData({...formData, name: v})} />
-                <Input label="পিতার নাম" onChange={(v:any) => setFormData({...formData, father_name: v})} />
+              <div className="flex-1 overflow-y-auto p-8 space-y-5 custom-scroll pb-20">
+                <Input label="নাম" placeholder="ছাত্রের নাম লিখুন" onChange={(v:any) => setFormData({...formData, name: v})} />
+                <Input label="পিতার নাম" placeholder="পিতার নাম লিখুন" onChange={(v:any) => setFormData({...formData, father_name: v})} />
                 <div className="grid grid-cols-2 gap-4">
                   <Select label="শ্রেণী" options={CLASS_LIST} onChange={(v:any) => setFormData({...formData, class_name: v})} />
-                  <Input label="রোল" onChange={(v:any) => setFormData({...formData, roll: v})} />
+                  <Input label="রোল" placeholder="১" onChange={(v:any) => setFormData({...formData, roll: v})} />
                 </div>
-                <Input label="মোবাইল" onChange={(v:any) => setFormData({...formData, phone: v})} />
-                <div className="grid grid-cols-2 gap-4 bg-blue-50 p-6 rounded-[2rem]">
-                  <Input label="মাসিক বেতন" type="number" onChange={(v:any) => setFormData({...formData, monthly_fee: v})} />
-                  <Input label="অন্যান্য ফি" type="number" onChange={(v:any) => setFormData({...formData, other_fee: v})} />
+                <Input label="মোবাইল" placeholder="017..." onChange={(v:any) => setFormData({...formData, phone: v})} />
+                <div className="bg-blue-50 p-6 rounded-[2.5rem] space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="মাসিক বেতন" type="number" onChange={(v:any) => setFormData({...formData, monthly_fee: v})} />
+                    <Input label="পরীক্ষা ফি" type="number" onChange={(v:any) => setFormData({...formData, exam_fee: v})} />
+                  </div>
                 </div>
                 <div className="p-6 bg-slate-900 text-white rounded-[2rem] flex justify-between items-center">
-                  <span className="font-bold opacity-60">মোট বকেয়া:</span>
+                  <span className="font-bold opacity-60">সর্বমোট বকেয়া:</span>
                   <span className="text-3xl font-black text-blue-400">৳{totalDuesCalc}</span>
                 </div>
-                <button onClick={handleSaveStudent} className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-xl">সেভ করুন</button>
+                <button onClick={handleSaveStudent} className="w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-xl shadow-xl">তথ্য সেভ করুন</button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* ফুটার নেভিগেশন */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t p-4 flex justify-around items-center rounded-t-[3rem] shadow-2xl z-[100]">
         <NavBtn icon={<LayoutDashboard/>} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
         <NavBtn icon={<Users/>} active={activeTab === 'students'} onClick={() => setActiveTab('students')} />
@@ -210,14 +233,17 @@ export default function AlAzharSmartOS() {
           <span className="text-[8px] font-black text-blue-900 mt-1 uppercase tracking-tighter">অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</span>
         </div>
       </nav>
+
+      <style>{`.custom-scroll::-webkit-scrollbar { width: 0; }`}</style>
     </div>
   );
 }
 
+// রিইউজেবল ছোট ছোট ডিজাইন কম্পোনেন্টস
 function Input({label, placeholder, value, onChange, type="text"}: any) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-black text-slate-400 uppercase ml-2">{label}</label>
+      <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">{label}</label>
       <input type={type} className="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none font-bold shadow-inner" placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
     </div>
   );
