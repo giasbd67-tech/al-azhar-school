@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   Users, Plus, Trash2, Edit, Phone, Copy, X, 
   LayoutDashboard, CreditCard, UserCheck, 
-  FileText, Printer, CheckCircle, ScanLine, School, DollarSign, BarChart3
+  FileText, Printer, CheckCircle, ScanLine, School, DollarSign, BarChart3, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QRCode from 'react-qr-code';
 
-// ১. কনফিগারেশন ও ধ্রুবক
+// ১. কনফিগারেশন
 const CLASS_LIST = ["প্লে", "নার্সারি", "কেজি", "১ম", "২য়", "৩য়", "৪র্থ", "৫ম", "৬ষ্ঠ", "৭ম", "৮ম", "৯ম", "১০ম", "একাদশ", "দ্বাদশ"];
-const API_URL = "https://your-neon-api-endpoint.vercel.app/api"; // আপনার আসল API URL এখানে দিন
+const API_URL = "https://your-vercel-api.vercel.app/api"; // আপনার ব্যাকএন্ড API URL এখানে দিন
 
 export default function AlAzharSmartOS() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,7 +20,6 @@ export default function AlAzharSmartOS() {
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [payAmount, setPayAmount] = useState('');
 
-  // ফরম স্টেট
   const [formData, setFormData] = useState({
     name: '', father_name: '', address: '', gender: 'ছাত্র', 
     class_name: 'প্লে', roll: '', phone: '',
@@ -33,11 +32,11 @@ export default function AlAzharSmartOS() {
     try {
       const res = await fetch(`${API_URL}/students`);
       const data = await res.json();
-      setStudents(data);
+      setStudents(Array.isArray(data) ? data : []);
     } catch (err) { console.error("Data fetch failed", err); }
   };
 
-  // ২. অটো মেসেজ ও কপি ফাংশন
+  // ২. অটো মেসেজ ও ক্যালকুলেশন লজিক
   const copyDueMessage = (st: any) => {
     const msg = `আসসালামু আলাইকুম, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ থেকে জানানো যাচ্ছে যে, আপনার সন্তান ${st.name}-এর মাসিক বেতন, পরীক্ষা ফি ও অন্যান্য ফি বাবদ মোট বকেয়া ${st.total_dues} টাকা। দ্রুত পরিশোধ করার জন্য অনুরোধ করা হলো। ধন্যবাদ।`;
     navigator.clipboard.writeText(msg);
@@ -50,7 +49,26 @@ export default function AlAzharSmartOS() {
     alert("অনুপস্থিতি মেসেজ কপি হয়েছে!");
   };
 
-  // ৩. ভর্তি ও এডিট লজিক
+  // ৩. পেমেন্ট লজিক (অটো বিয়োগ)
+  const handlePayment = async () => {
+    const amount = Number(payAmount);
+    if (amount <= 0 || !selectedStudent) return;
+
+    const updatedDues = selectedStudent.total_dues - amount;
+    try {
+      const res = await fetch(`${API_URL}/students/${selectedStudent.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...selectedStudent, total_dues: updatedDues })
+      });
+      if(res.ok) {
+        alert(`${amount} টাকা জমা হয়েছে। নতুন বকেয়া: ${updatedDues}`);
+        setShowPayModal(false);
+        fetchStudents();
+      }
+    } catch (err) { alert("পেমেন্ট ব্যর্থ হয়েছে!"); }
+  };
+
   const handleSaveStudent = async () => {
     const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + 
                   Number(formData.other_fee) + Number(formData.previous_dues);
@@ -66,7 +84,6 @@ export default function AlAzharSmartOS() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        alert("সফলভাবে সেভ হয়েছে!");
         setShowForm(false);
         setEditingStudent(null);
         fetchStudents();
@@ -74,86 +91,69 @@ export default function AlAzharSmartOS() {
     } catch (err) { alert("সেভ করতে সমস্যা হয়েছে!"); }
   };
 
-  // ৪. পেমেন্ট লজিক (বিয়োগ করা)
-  const handlePayment = async () => {
-    const amount = Number(payAmount);
-    if (amount <= 0) return;
-
-    const updatedDues = selectedStudent.total_dues - amount;
-    try {
-      await fetch(`${API_URL}/students/${selectedStudent.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...selectedStudent, total_dues: updatedDues })
-      });
-      alert(`${amount} টাকা জমা নেওয়া হয়েছে। বর্তমান বকেয়া: ${updatedDues}`);
-      setShowPayModal(false);
-      fetchStudents();
-    } catch (err) { alert("পেমেন্ট ব্যর্থ হয়েছে"); }
-  };
-
-  // ৫. ডিলিট লজিক
   const deleteStudent = async (id: number) => {
-    if (window.confirm("আপনি কি নিশ্চিতভাবে ডিলিট করতে চান?")) {
+    if (confirm("আপনি কি নিশ্চিত ডিলিট করতে চান?")) {
       await fetch(`${API_URL}/students/${id}`, { method: 'DELETE' });
       fetchStudents();
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      {/* হেডার */}
-      <header className="bg-[#1E3A8A] text-white p-6 rounded-b-[2rem] shadow-xl flex items-center gap-4">
-        <img src="/logo.png" alt="Logo" className="w-16 h-16 rounded-full border-2 border-white" />
-        <div>
-          <h1 className="text-xl font-bold leading-tight">আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ</h1>
-          <p className="text-[10px] opacity-80">SMART SCHOOL OS • অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</p>
+    <div className="min-h-screen bg-slate-50 pb-32">
+      {/* হেডার লোগো সহ */}
+      <header className="bg-[#1E3A8A] text-white p-8 rounded-b-[3rem] shadow-2xl relative">
+        <div className="flex items-center gap-5 max-w-5xl mx-auto">
+          <img src="/logo.png" alt="Logo" className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-xl" />
+          <div>
+            <h1 className="text-xl font-black">আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ</h1>
+            <p className="text-blue-200 text-[10px] font-bold uppercase tracking-widest mt-1">Smart School OS • অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</p>
+          </div>
         </div>
       </header>
 
-      <main className="p-4 max-w-4xl mx-auto space-y-6">
+      <main className="max-w-4xl mx-auto p-4 space-y-6">
         {/* ড্যাশবোর্ড বা স্টুডেন্ট লিস্ট */}
         {activeTab === 'students' && (
           <div className="space-y-4">
-            <button onClick={() => { setEditingStudent(null); setShowForm(true); }} className="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold flex justify-center gap-2">
-              <Plus /> নতুন স্টুডেন্ট ভর্তি
+            <button onClick={() => { setEditingStudent(null); setShowForm(true); }} className="w-full bg-[#1E3A8A] text-white p-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-lg mb-4">
+              <Plus/> নতুন স্টুডেন্ট ভর্তি
             </button>
 
             {students.map((st) => (
-              <div key={st.id} className="bg-white p-5 rounded-3xl shadow-sm border border-blue-100 space-y-4">
+              <div key={st.id} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-4">
                 <div className="flex justify-between items-start">
-                  <div className="flex gap-3">
-                    <div className="p-2 bg-slate-100 rounded-lg"><QRCode value={`ID:${st.id}`} size={40} /></div>
+                  <div className="flex gap-4">
+                    <div className="p-2 bg-slate-50 rounded-xl border"><QRCode value={`ID:${st.id}`} size={45} /></div>
                     <div>
-                      <h3 className="font-bold text-lg">{st.name}</h3>
-                      <p className="text-xs text-slate-500">{st.class_name} | রোল: {st.roll}</p>
+                      <h3 className="font-black text-slate-800 text-lg">{st.name}</h3>
+                      <p className="text-xs font-bold text-slate-400">রোল: {st.roll} • {st.class_name}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-red-500">বকেয়া</p>
-                    <p className="text-xl font-black text-red-600">৳{st.total_dues}</p>
+                    <p className="text-[10px] font-bold text-rose-400 uppercase">বকেয়া</p>
+                    <p className="font-black text-rose-600 text-xl">৳{st.total_dues}</p>
                   </div>
                 </div>
 
                 {/* বাটন গ্রুপ */}
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => window.location.href = `tel:${st.phone}`} className="flex items-center justify-center gap-2 p-3 bg-green-50 text-green-700 rounded-xl text-xs font-bold border border-green-200">
-                    <Phone size={14} /> কল করুন
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => window.location.href=`tel:${st.phone}`} className="flex items-center justify-center gap-2 p-4 bg-emerald-50 text-emerald-700 rounded-2xl text-xs font-black border border-emerald-100">
+                    <Phone size={14}/> কল করুন
                   </button>
-                  <button onClick={() => { setSelectedStudent(st); setShowPayModal(true); }} className="flex items-center justify-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold border border-blue-200">
-                    <CreditCard size={14} /> বকেয়া পরিশোধ
+                  <button onClick={() => { setSelectedStudent(st); setShowPayModal(true); }} className="flex items-center justify-center gap-2 p-4 bg-blue-50 text-blue-700 rounded-2xl text-xs font-black border border-blue-100">
+                    <CreditCard size={14}/> বকেয়া পরিশোধ
                   </button>
-                  <button onClick={() => copyDueMessage(st)} className="flex items-center justify-center gap-2 p-3 bg-amber-50 text-amber-700 rounded-xl text-xs font-bold border border-amber-200">
-                    <Copy size={14} /> বকেয়া কপি
+                  <button onClick={() => copyDueMessage(st)} className="flex items-center justify-center gap-2 p-4 bg-orange-50 text-orange-700 rounded-2xl text-xs font-black border border-orange-100">
+                    <Copy size={14}/> বকেয়া কপি
                   </button>
-                  <button onClick={() => copyAbsentMessage(st)} className="flex items-center justify-center gap-2 p-3 bg-purple-50 text-purple-700 rounded-xl text-xs font-bold border border-purple-200">
-                    <Copy size={14} /> অনুপস্থিতি কপি
+                  <button onClick={() => copyAbsentMessage(st)} className="flex items-center justify-center gap-2 p-4 bg-purple-50 text-purple-700 rounded-2xl text-xs font-black border border-purple-100">
+                    <Copy size={14}/> অনুপস্থিতি কপি
                   </button>
                 </div>
 
-                <div className="flex gap-2 pt-2 border-t border-slate-50">
-                  <button onClick={() => { setEditingStudent(st); setFormData(st); setShowForm(true); }} className="flex-1 flex justify-center py-2 text-blue-500"><Edit size={16} /></button>
-                  <button onClick={() => deleteStudent(st.id)} className="flex-1 flex justify-center py-2 text-red-500"><Trash2 size={16} /></button>
+                <div className="flex justify-end gap-5 pt-3 border-t border-slate-50">
+                  <button onClick={() => { setEditingStudent(st); setFormData(st); setShowForm(true); }} className="text-blue-500 flex items-center gap-1 font-bold text-xs"><Edit size={14}/> সংশোধন</button>
+                  <button onClick={() => deleteStudent(st.id)} className="text-rose-500 flex items-center gap-1 font-bold text-xs"><Trash2 size={14}/> ডিলিট</button>
                 </div>
               </div>
             ))}
@@ -161,99 +161,91 @@ export default function AlAzharSmartOS() {
         )}
       </main>
 
-      {/* ভর্তি ফরম মডাল (বড় এবং স্ক্রলযোগ্য) */}
+      {/* ভর্তি ফরম (স্ক্রলযোগ্য ও বড় ফিল্ড) */}
       <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="fixed inset-0 bg-black/50 z-50 flex items-end">
-            <div className="bg-white w-full h-[90vh] rounded-t-[3rem] p-6 overflow-y-auto shadow-2xl">
-              <div className="flex justify-between mb-6">
-                <h2 className="text-xl font-black">{editingStudent ? 'তথ্য সংশোধন' : 'ভর্তি ফরম'}</h2>
-                <button onClick={() => setShowForm(false)} className="p-2 bg-slate-100 rounded-full"><X /></button>
+          <motion.div initial={{y:'100%'}} animate={{y:0}} exit={{y:'100%'}} className="fixed inset-0 bg-black/60 z-[600] flex items-end">
+            <div className="bg-white w-full h-[92vh] rounded-t-[4rem] p-8 overflow-y-auto">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black text-slate-800">{editingStudent ? 'তথ্য সংশোধন' : 'নতুন ভর্তি ফরম'}</h2>
+                <button onClick={()=>setShowForm(false)} className="bg-slate-100 p-3 rounded-full"><X/></button>
               </div>
 
               <div className="space-y-6 pb-20">
-                <BigInput label="নাম (Name)" placeholder="এম এস সাদী মিনার" value={formData.name} onChange={(v:any)=>setFormData({...formData, name:v})} />
-                <BigInput label="পিতার নাম (Father's Name)" placeholder="গিয়াস উদ্দিন" value={formData.father_name} onChange={(v:any)=>setFormData({...formData, father_name:v})} />
-                <BigInput label="ঠিকানা (Address)" placeholder="নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী" value={formData.address} onChange={(v:any)=>setFormData({...formData, address:v})} />
+                <BigInput label="নাম (Name)" placeholder="এম এস সাদী মিনার / এম এস ফাদি মিহাল" value={formData.name} onChange={(v:any)=>setFormData({...formData, name: v})} />
+                <BigInput label="পিতার নাম (Father's Name)" placeholder="গিয়াস উদ্দিন" value={formData.father_name} onChange={(v:any)=>setFormData({...formData, father_name: v})} />
+                <BigInput label="ঠিকানা (Address)" placeholder="নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী" value={formData.address} onChange={(v:any)=>setFormData({...formData, address: v})} />
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500">শ্রেণী (Class)</label>
-                    <select value={formData.class_name} onChange={(e)=>setFormData({...formData, class_name: e.target.value})} className="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none font-bold">
-                      {CLASS_LIST.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <BigInput label="রোল (Roll)" type="number" value={formData.roll} onChange={(v:any)=>setFormData({...formData, roll:v})} />
+                <div className="grid grid-cols-2 gap-5">
+                   <div className="space-y-2">
+                     <label className="text-xs font-black text-slate-400 ml-2 uppercase">শ্রেণী (Class)</label>
+                     <select value={formData.class_name} onChange={(e)=>setFormData({...formData, class_name: e.target.value})} className="w-full p-5 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-500 outline-none font-bold text-lg">
+                        {CLASS_LIST.map(c => <option key={c} value={c}>{c}</option>)}
+                     </select>
+                   </div>
+                   <BigInput label="রোল নং (Roll)" type="number" value={formData.roll} onChange={(v:any)=>setFormData({...formData, roll: v})} />
                 </div>
 
-                <BigInput label="মোবাইল (Phone)" value={formData.phone} onChange={(v:any)=>setFormData({...formData, phone:v})} />
+                <BigInput label="মোবাইল নং (Phone)" value={formData.phone} onChange={(v:any)=>setFormData({...formData, phone: v})} />
 
-                <div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded-3xl">
-                  <BigInput label="মাসিক বেতন" type="number" value={formData.monthly_fee} onChange={(v:any)=>setFormData({...formData, monthly_fee:v})} />
-                  <BigInput label="পরীক্ষা ফি" type="number" value={formData.exam_fee} onChange={(v:any)=>setFormData({...formData, exam_fee:v})} />
-                  <BigInput label="অন্যান্য ফি" type="number" value={formData.other_fee} onChange={(v:any)=>setFormData({...formData, other_fee:v})} />
-                  <BigInput label="পূর্বের বকেয়া" type="number" value={formData.previous_dues} onChange={(v:any)=>setFormData({...formData, previous_dues:v})} />
+                <div className="grid grid-cols-2 gap-5 bg-blue-50/50 p-6 rounded-[3rem] border border-blue-100">
+                  <BigInput label="মাসিক বেতন" type="number" value={formData.monthly_fee} onChange={(v:any)=>setFormData({...formData, monthly_fee: v})} />
+                  <BigInput label="পরীক্ষা ফি" type="number" value={formData.exam_fee} onChange={(v:any)=>setFormData({...formData, exam_fee: v})} />
+                  <BigInput label="অন্যান্য ফি" type="number" value={formData.other_fee} onChange={(v:any)=>setFormData({...formData, other_fee: v})} />
+                  <BigInput label="পূর্বের বকেয়া" type="number" value={formData.previous_dues} onChange={(v:any)=>setFormData({...formData, previous_dues: v})} />
                 </div>
 
-                <button onClick={handleSaveStudent} className="w-full bg-blue-600 text-white py-5 rounded-3xl font-black text-lg shadow-lg">তথ্য সংরক্ষণ করুন</button>
+                <button onClick={handleSaveStudent} className="w-full bg-[#1E3A8A] text-white py-6 rounded-[2.5rem] font-black text-xl shadow-xl hover:bg-blue-800 transition-all">সংরক্ষণ করুন</button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* পেমেন্ট মডাল */}
+      {/* বকেয়া পরিশোধ মডাল */}
       <AnimatePresence>
         {showPayModal && (
-          <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-6">
-            <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 space-y-6">
-              <h3 className="text-center font-bold text-lg">বকেয়া পরিশোধ</h3>
-              <div className="text-center">
-                <p className="text-xs text-slate-400">মোট বকেয়া: ৳{selectedStudent?.total_dues}</p>
-              </div>
-              <input type="number" placeholder="টাকার পরিমাণ লিখুন" value={payAmount} onChange={(e)=>setPayAmount(e.target.value)} className="w-full p-4 bg-slate-50 rounded-2xl border-2 border-blue-100 text-center text-2xl font-bold outline-none" />
-              <button onClick={handlePayment} className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold">জমা নিশ্চিত করুন</button>
-              <button onClick={()=>setShowPayModal(false)} className="w-full text-slate-400 text-sm">বাতিল করুন</button>
+          <div className="fixed inset-0 bg-black/60 z-[800] flex items-center justify-center p-6 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 space-y-6 shadow-2xl">
+              <h3 className="text-center font-black text-xl">টাকা জমা নিন</h3>
+              <p className="text-center text-xs font-bold text-slate-400">মোট বকেয়া: ৳{selectedStudent?.total_dues}</p>
+              <input type="number" placeholder="৳ পরিমাণ লিখুন" value={payAmount} onChange={(e)=>setPayAmount(e.target.value)} className="w-full p-5 bg-slate-50 rounded-2xl border-2 border-blue-500 text-center text-3xl font-black outline-none" />
+              <button onClick={handlePayment} className="w-full bg-emerald-600 text-white py-5 rounded-3xl font-black text-lg shadow-lg">জমা নিশ্চিত করুন</button>
+              <button onClick={()=>setShowPayModal(false)} className="w-full text-slate-400 font-bold text-sm">বাতিল</button>
             </div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* ফুটার ও ডেভেলপার ইনফো */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around items-center rounded-t-3xl shadow-2xl z-40">
+      {/* নেভিগেশন ও ফুটার */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t p-4 flex justify-around items-center rounded-t-[3rem] shadow-2xl z-[100]">
         <NavBtn icon={<LayoutDashboard/>} active={activeTab === 'dashboard'} onClick={()=>setActiveTab('dashboard')} />
         <NavBtn icon={<Users/>} active={activeTab === 'students'} onClick={()=>setActiveTab('students')} />
         <NavBtn icon={<UserCheck/>} active={activeTab === 'attendance'} onClick={()=>setActiveTab('attendance')} />
         
         <div className="flex flex-col items-center">
-          <img src="/developer.jpg" alt="Dev" className="w-8 h-8 rounded-full border border-blue-600" />
-          <span className="text-[7px] font-bold mt-1">গিয়াস উদ্দিন</span>
+          <img src="/developer.jpg" alt="GU" className="w-9 h-9 rounded-full border-2 border-blue-600 shadow-sm" />
+          <span className="text-[7px] font-black text-blue-900 mt-1 uppercase">অ্যাপ ডেভেলপার: গিয়াস উদ্দিন</span>
         </div>
       </footer>
     </div>
   );
 }
 
-// ৪. ছোট হেল্পার কম্পোনেন্ট
+// ৪. হেল্পার কম্পোনেন্ট
 function BigInput({ label, placeholder, value, onChange, type = "text" }: any) {
   return (
-    <div className="space-y-1">
-      <label className="text-xs font-bold text-slate-500 ml-2">{label}</label>
-      <input 
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 outline-none font-bold text-slate-800 transition-all shadow-inner"
-      />
+    <div className="space-y-2">
+      <label className="text-xs font-black text-slate-400 ml-2 uppercase">{label}</label>
+      <input type={type} value={value} onChange={(e)=>onChange(e.target.value)} placeholder={placeholder} className="w-full p-5 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-500 outline-none font-bold text-lg transition-all" />
     </div>
   );
 }
 
 function NavBtn({icon, active, onClick}: any) {
   return (
-    <button onClick={onClick} className={`p-3 rounded-xl ${active ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>
-      {icon}
+    <button onClick={onClick} className={`p-4 rounded-2xl transition-all ${active ? 'bg-blue-600 text-white scale-110 shadow-lg' : 'text-slate-300'}`}>
+      {React.cloneElement(icon as React.ReactElement, { size: 24 })}
     </button>
   );
 }
