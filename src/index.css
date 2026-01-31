@@ -1,35 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    margin: 0;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-family: 'Hind Siliguri', sans-serif;
-    background-color: #f8fafc;
-  }
+:root {
+  font-family: 'Hind Siliguri', sans-serif;
 }
 
-/* বড় ফরমের স্ক্রলবার লুকানোর জন্য */
-.custom-scroll::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
+body {
+  margin: 0;
+  background-color: #F8FAFC;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ইনপুট বক্সের বাড়তি অ্যারো লুকানো */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+/* বাংলা ফন্ট সব জায়গায় নিশ্চিত করার জন্য */
+* {
+  font-family: 'Hind Siliguri', sans-serif !important;
 }
 
-/* অ্যানিমেশন ট্রানজিশন */
-.fade-enter {
-  opacity: 0;
+/* স্ক্রলবার সুন্দর করার জন্য */
+::-webkit-scrollbar {
+  width: 6px;
 }
-.fade-enter-active {
-  opacity: 1;
-  transition: opacity 300ms ease-in;
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E40AF;
+  border-radius: 10px;
 }
