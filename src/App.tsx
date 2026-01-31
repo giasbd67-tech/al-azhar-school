@@ -24,7 +24,6 @@ export default function App() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // বকেয়া টাকা অটোমেটিক যোগফল করার লজিক
   useEffect(() => {
     const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + Number(formData.other_fee) + Number(formData.previous_dues);
     setFormData(prev => ({ ...prev, dues: total }));
@@ -83,8 +82,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
+      {/* Header with Logo */}
       <header className="bg-blue-700 text-white pt-10 pb-20 px-4 text-center">
-        <School size={40} className="mx-auto mb-2 text-yellow-400" />
+        <img 
+          src="/logo.png" 
+          alt="School Logo" 
+          className="mx-auto mb-3 w-20 h-20 object-contain drop-shadow-md"
+        />
         <h1 className="text-xl font-bold">আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ</h1>
         <p className="text-[10px] opacity-80 mt-1">ঠিকানাঃ নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী।</p>
       </header>
@@ -98,7 +102,7 @@ export default function App() {
           <select className="p-3.5 bg-slate-100 rounded-2xl outline-none font-bold text-slate-600" onChange={e => setFilterClass(e.target.value)}>
             {CLASSES.map(c => <option key={c}>{c}</option>)}
           </select>
-          <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black shadow-lg shadow-blue-200">
+          <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-6 py-3.5 rounded-2xl font-black shadow-lg shadow-blue-200 flex items-center justify-center gap-2">
             <Plus size={20}/> নতুন ভর্তি
           </button>
         </div>
@@ -133,11 +137,21 @@ export default function App() {
           ))}
         </div>
 
+        {/* Footer with Developer Image */}
         <footer className="mt-20 py-10 text-center border-t border-slate-200">
-          <p className="text-slate-400 font-bold text-xs">অ্যাপ ডেভেলপারঃ <span className="text-blue-600">গিয়াস উদ্দিন</span></p>
+          <div className="flex flex-col items-center gap-3">
+            <img 
+              src="/gias.jpg" 
+              alt="গিয়াস উদ্দিন" 
+              className="w-14 h-14 rounded-full border-4 border-white shadow-md"
+            />
+            <p className="text-slate-400 font-bold text-xs">
+              অ্যাপ ডেভেলপারঃ <span className="text-blue-600">গিয়াস উদ্দিন</span>
+            </p>
+          </div>
         </footer>
 
-        {/* ভর্তি ফরম মডাল */}
+        {/* Admission Form Modal */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -151,13 +165,11 @@ export default function App() {
                   <div className="space-y-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">ব্যক্তিগত তথ্য</p>
                     
-                    {/* নাম (Label + Input) */}
                     <div className="space-y-1">
                       <label className="text-[12px] font-black text-slate-700 ml-1">শিক্ষার্থীর নাম (Name)</label>
                       <input required placeholder="এম এস সাদী মিনার/এম এস ফাদি মিহাল" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
                     </div>
 
-                    {/* পিতার নাম (Label + Input) */}
                     <div className="space-y-1">
                       <label className="text-[12px] font-black text-slate-700 ml-1">পিতার নাম (Father's Name)</label>
                       <input required placeholder="গিয়াস উদ্দিন" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
@@ -189,7 +201,6 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* ঠিকানা (Label + Textarea) */}
                     <div className="space-y-1">
                       <label className="text-[12px] font-black text-slate-700 ml-1">ঠিকানা (Address)</label>
                       <textarea placeholder="নদোনা বাজার, সোনাইমুড়ী, নোয়াখালী" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none h-20 resize-none bg-slate-50/50" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
@@ -219,7 +230,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* পেমেন্ট মডাল */}
+        {/* Payment Modal */}
         <AnimatePresence>
           {showPaymentModal && selectedStudent && (
             <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
