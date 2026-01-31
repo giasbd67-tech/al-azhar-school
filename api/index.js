@@ -3,55 +3,68 @@ import { neon } from '@neondatabase/serverless';
 
 const app = express();
 app.use(express.json());
+
 const sql = neon(process.env.DATABASE_URL);
 
-// ১. ড্যাশবোর্ড ডাটা (AI Analytics)
-app.get('/api/dashboard', async (req, res) => {
-  const stats = await sql`
-    SELECT 
-      (SELECT COUNT(*) FROM students) as total_students,
-      (SELECT COALESCE(SUM(total_dues), 0) FROM students) as total_dues,
-      (SELECT COALESCE(SUM(salary_dues), 0) FROM teachers) as teacher_dues,
-      (SELECT COUNT(*) FROM teachers) as total_teachers
-  `;
-  res.json(stats[0]);
-});
-
-// ২. সব স্টুডেন্ট ডাটা
-app.get('/api/students', async (req, res) => {
-  const data = await sql`SELECT * FROM students ORDER BY id DESC`;
-  res.json(data);
-});
-
-// ৩. নতুন স্টুডেন্ট ভর্তি (সেভ হওয়া নিশ্চিত করবে)
-app.post('/api/students', async (req, res) => {
-  const { name, father_name, address, gender, class_name, roll, phone, monthly_fee, exam_fee, other_fee, previous_dues } = req.body;
-  const total_dues = Number(monthly_fee) + Number(exam_fee) + Number(other_fee) + Number(previous_dues);
-  
+// ১. শিক্ষার্থীদের তালিকা দেখা
+app.get('/api', async (req, res) => {
   try {
-    const result = await sql`
-      INSERT INTO students (name, father_name, address, gender, class_name, roll, phone, monthly_fee, exam_fee, other_fee, previous_dues, total_dues)
-      VALUES (${name}, ${father_name}, ${address}, ${gender}, ${class_name}, ${roll}, ${phone}, ${monthly_fee}, ${exam_fee}, ${other_fee}, ${previous_dues}, ${total_dues})
-      RETURNING *
-    `;
-    res.json(result[0]);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    const data = await sql`SELECT * FROM students ORDER BY id DESC`;
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// ৪. বকেয়া পরিশোধ (বিয়োগ হওয়া নিশ্চিত করবে)
-app.post('/api/students/pay', async (req, res) => {
-  const { id, amount } = req.body;
+// ২. নতুন শিক্ষার্থী ভর্তি
+app.post('/api', async (req, res) => {
+  const { name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues } = req.body;
   try {
-    await sql`UPDATE students SET total_dues = total_dues - ${amount} WHERE id = ${id}`;
-    await sql`INSERT INTO transactions (student_id, amount, type) VALUES (${id}, ${amount}, 'payment')`;
+    await sql`INSERT INTO students (name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues) 
+              VALUES (${name}, ${father_name}, ${class_name}, ${roll}, ${phone}, ${gender}, ${address}, ${monthly_fee}, ${exam_fee}, ${other_fee}, ${previous_dues}, ${dues})`;
+    res.status(201).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ৩. শিক্ষার্থীর তথ্য সংশোধন
+app.put('/api/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, father_name, class_name, roll, phone, gender, address, monthly_fee, exam_fee, other_fee, previous_dues, dues } = req.body;
+  try {
+    await sql`UPDATE students SET 
+              name=${name}, father_name=${father_name}, class_name=${class_name}, roll=${roll}, phone=${phone}, 
+              gender=${gender}, address=${address}, monthly_fee=${monthly_fee}, exam_fee=${exam_fee}, 
+              other_fee=${other_fee}, previous_dues=${previous_dues}, dues=${dues} 
+              WHERE id=${id}`;
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// ৫. স্টুডেন্ট ডিলিট
-app.delete('/api/students/:id', async (req, res) => {
-  await sql`DELETE FROM students WHERE id = ${req.params.id}`;
-  res.json({ success: true });
+// ৪. বকেয়া টাকা জমা নেওয়া (বকেয়া থেকে বিয়োগ)
+app.patch('/api/payment/:id', async (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+  try {
+    await sql`UPDATE students SET dues = dues - ${amount} WHERE id = ${id}`;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ৫. শিক্ষার্থী ডিলিট করা
+app.delete('/api/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await sql`DELETE FROM students WHERE id = ${id}`;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 export default app;
