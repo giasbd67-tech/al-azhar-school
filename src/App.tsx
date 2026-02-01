@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Phone, Plus, X, Trash2, Edit3, UserCircle, Save, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin } from 'lucide-react';
+import { Search, Phone, Plus, X, Trash2, Edit3, UserCircle, Save, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin, LogOut, Lock, User, Mail, ShieldCheck, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const toBn = (n: any) => n?.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]) || "০";
 const CLASSES = ['সব শ্রেণী', 'প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', 'একাদশ', 'দ্বাদশ'];
 
 export default function App() {
+  // --- Authentication States ---
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot'>('signin');
+  const [loginCreds, setLoginCreds] = useState({ username: '', password: '' });
+  const [otp, setOtp] = useState('');
+  const [showOtpField, setShowOtpField] = useState(false);
+
+  // --- Your Existing App States ---
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('সব শ্রেণী');
@@ -22,17 +30,43 @@ export default function App() {
   };
   const [formData, setFormData] = useState(initialForm);
 
-  // ব্রাউজারের টাইটেল এবং অ্যাপের মেটা ট্যাগ সেট করার জন্য (ইন্সটল অপশন পেতে সাহায্য করবে)
   useEffect(() => {
     document.title = "Al-Azhar School Management";
-    fetchData();
-  }, []);
+    if (isLoggedIn) fetchData();
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + Number(formData.other_fee) + Number(formData.previous_dues);
     setFormData(prev => ({ ...prev, dues: total }));
   }, [formData.monthly_fee, formData.exam_fee, formData.other_fee, formData.previous_dues]);
 
+  // --- Auth Handlers ---
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginCreds.username === 'Al-Azhar' && loginCreds.password === 'Azhar6677') {
+      setIsLoggedIn(true);
+    } else {
+      alert('ভুল ইউজার আইডি বা পাসওয়ার্ড!');
+    }
+  };
+
+  const handleRecovery = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showOtpField) {
+      alert('ওটিপি (OTP) giasbd67@gmail.com ইমেইলে পাঠানো হয়েছে।');
+      setShowOtpField(true);
+    } else {
+      if (otp === '1234') { // Example OTP
+        alert('সফল! আপনার পাসওয়ার্ড হলো: Azhar6677');
+        setAuthView('signin');
+        setShowOtpField(false);
+      } else {
+        alert('ভুল ওটিপি!');
+      }
+    }
+  };
+
+  // --- Your Original Fetch & Form Handlers ---
   const fetchData = () => {
     fetch('/api').then(res => res.json()).then(data => {
       setStudents(Array.isArray(data) ? data : []);
@@ -67,6 +101,7 @@ export default function App() {
 
   const closeForm = () => { setShowForm(false); setEditingId(null); setFormData(initialForm); };
 
+  // --- Your Existing Message Handlers ---
   const copyDueMsg = (st: any) => {
     const msg = `আসসালামু আলাইকুম, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ থেকে জানানো যাচ্ছে যে, আপনার সন্তান ${st.name}-এর মাসিক বেতন, পরীক্ষা ফি ও অন্যান্য ফি বাবদ মোট বকেয়া ${toBn(st.dues)} টাকা। দ্রুত পরিশোধ করার জন্য অনুরোধ করা হলো। ধন্যবাদ।`;
     navigator.clipboard.writeText(msg);
@@ -94,9 +129,80 @@ export default function App() {
     (filterClass === 'সব শ্রেণী' || st.class_name === filterClass)
   );
 
+  // --- 1. LOGIN UI ---
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 rounded-[3rem] shadow-2xl w-full max-w-md border border-white">
+          <div className="text-center mb-8">
+            <div className="bg-blue-600 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-200">
+              <ShieldCheck className="text-white" size={40} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+              {authView === 'signin' ? 'লগইন করুন' : authView === 'signup' ? 'নতুন ইউজার' : 'পাসওয়ার্ড রিকভারি'}
+            </h2>
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Al-Azhar School System</p>
+          </div>
+
+          <form onSubmit={authView === 'signin' ? handleSignIn : handleRecovery} className="space-y-4">
+            {authView !== 'forgot' && (
+              <div className="relative">
+                <User className="absolute left-5 top-4.5 text-slate-400" size={18} />
+                <input required placeholder="ইউজার আইডি" className="w-full pl-14 p-4.5 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100 border border-slate-100 font-bold" value={loginCreds.username} onChange={e => setLoginCreds({...loginCreds, username: e.target.value})} />
+              </div>
+            )}
+            
+            {authView === 'signin' && (
+              <div className="relative">
+                <Lock className="absolute left-5 top-4.5 text-slate-400" size={18} />
+                <input required type="password" placeholder="পাসওয়ার্ড" className="w-full pl-14 p-4.5 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-blue-100 border border-slate-100 font-bold" value={loginCreds.password} onChange={e => setLoginCreds({...loginCreds, password: e.target.value})} />
+              </div>
+            )}
+
+            {authView === 'forgot' && (
+              <div className="space-y-4">
+                <div className="relative">
+                  <Mail className="absolute left-5 top-4.5 text-slate-400" size={18} />
+                  <input readOnly value="giasbd67@gmail.com" className="w-full pl-14 p-4.5 bg-slate-100 rounded-2xl text-slate-500 font-bold outline-none" />
+                </div>
+                {showOtpField && (
+                  <div className="relative">
+                    <KeyRound className="absolute left-5 top-4.5 text-blue-500" size={18} />
+                    <input required placeholder="ওটিপি দিন" className="w-full pl-14 p-4.5 bg-blue-50 rounded-2xl border-2 border-blue-200 text-xl font-black tracking-widest outline-none" value={otp} onChange={e => setOtp(e.target.value)} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button type="submit" className="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95">
+              {authView === 'signin' ? 'প্রবেশ করুন' : showOtpField ? 'ভেরিফাই করুন' : 'ওটিপি পাঠান'}
+            </button>
+          </form>
+
+          <div className="mt-8 flex flex-col gap-2 text-center text-[11px] font-black uppercase text-slate-400">
+            {authView === 'signin' ? (
+              <>
+                <button onClick={() => setAuthView('forgot')} className="text-blue-600">পাসওয়ার্ড ভুলে গেছেন?</button>
+                <p>অ্যাকাউন্ট নেই? <button onClick={() => setAuthView('signup')} className="text-blue-600">নতুন খুলুন</button></p>
+              </>
+            ) : (
+              <button onClick={() => {setAuthView('signin'); setShowOtpField(false);}} className="text-blue-600">লগইন পেজে ফিরুন</button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // --- 2. MAIN DASHBOARD (Your original code) ---
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
+        {/* Logout Button */}
+        <button onClick={() => setIsLoggedIn(false)} className="absolute top-6 right-6 bg-white/10 p-3 rounded-2xl hover:bg-red-500 transition-all shadow-xl backdrop-blur-md border border-white/10">
+          <LogOut size={20} />
+        </button>
+
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative inline-block">
           <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 animate-pulse"></div>
           <div className="relative bg-white p-1 rounded-full shadow-2xl mb-4 border-2 border-white/50 ring-4 ring-blue-400/20">
@@ -113,6 +219,7 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto -mt-12 px-4 relative z-10">
+        {/* Search & Filters */}
         <div className="bg-white p-5 rounded-[2.5rem] shadow-xl shadow-blue-900/5 flex flex-col md:flex-row gap-3 mb-8 border border-white/50">
           <div className="flex-grow relative">
             <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
@@ -126,6 +233,7 @@ export default function App() {
           </button>
         </div>
 
+        {/* Students List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((st: any) => (
             <motion.div layout key={st.id} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
@@ -163,6 +271,7 @@ export default function App() {
           ))}
         </div>
 
+        {/* Footer with Branding */}
         <footer className="mt-20 py-12 text-center">
           <div className="inline-flex flex-col items-center gap-3 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
             <div className="p-1 bg-blue-50 rounded-full ring-2 ring-white">
@@ -177,6 +286,7 @@ export default function App() {
           </div>
         </footer>
 
+        {/* --- Modals (Form & Payment) --- */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
