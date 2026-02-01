@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Phone, School, Plus, X, Trash2, Edit3, UserCircle, Save, Filter, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Helmet } from 'react-helmet'; // এটি মেটা ট্যাগের জন্য প্রয়োজন
 
 const toBn = (n: any) => n?.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]) || "০";
 const CLASSES = ['সব শ্রেণী', 'প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', 'একাদশ', 'দ্বাদশ'];
@@ -92,6 +93,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
+      {/* PWA মেটা ট্যাগ যা অ্যাপ ইন্সটল করতে সাহায্য করবে */}
+      <Helmet>
+        <title>Al-Azhar School Management</title>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Al-Azhar Management" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+      </Helmet>
+
       {/* Improved Header with Premium Logo Look */}
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
         <motion.div 
@@ -185,7 +195,7 @@ export default function App() {
           </div>
         </footer>
 
-        {/* Admission Form: হুবহু আপনার দেওয়া আগের কোড */}
+        {/* Admission Form: হুবহু আগের কোড */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
