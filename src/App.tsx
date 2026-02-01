@@ -10,10 +10,9 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authView, setAuthView] = useState<'signin' | 'signup' | 'forgot'>('signin');
   const [loginCreds, setLoginCreds] = useState({ username: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false); // পাসওয়ার্ড দেখানোর স্টেট
+  const [showPassword, setShowPassword] = useState(false); 
   const [otp, setOtp] = useState('');
   const [showOtpField, setShowOtpField] = useState(false);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
   // --- Your Existing App States ---
   const [students, setStudents] = useState([]);
@@ -42,7 +41,7 @@ export default function App() {
     setFormData(prev => ({ ...prev, dues: total }));
   }, [formData.monthly_fee, formData.exam_fee, formData.other_fee, formData.previous_dues]);
 
-  // --- Auth Handlers ---
+  // --- Auth Handlers (Updated for Master OTP) ---
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginCreds.username === 'Al-Azhar' && loginCreds.password === 'Azhar6677') {
@@ -52,39 +51,21 @@ export default function App() {
     }
   };
 
-  const handleRecovery = async (e: React.FormEvent) => {
+  const handleRecovery = (e: React.FormEvent) => {
     e.preventDefault();
     if (!showOtpField) {
-      setIsSendingOtp(true);
-      try {
-        // এখানে আপনার ব্যাকএন্ড এপিআই কল হবে যা ইমেইল পাঠাবে
-        const res = await fetch('/api/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'giasbd67@gmail.com' })
-        });
-        
-        if (res.ok) {
-          alert('ওটিপি (OTP) giasbd67@gmail.com ইমেইলে পাঠানো হয়েছে।');
-          setShowOtpField(true);
-        } else {
-          alert('ওটিপি পাঠানো সম্ভব হয়নি। ব্যাকএন্ড চেক করুন।');
-        }
-      } catch (err) {
-        // যদি ব্যাকএন্ড সেটআপ না থাকে তবুও টেস্টিং এর জন্য এটি কাজ করবে
-        alert('ওটিপি (OTP) পাঠানোর রিকোয়েস্ট সফল হয়েছে (সিমুলেশন)।');
-        setShowOtpField(true);
-      } finally {
-        setIsSendingOtp(false);
-      }
+      // ইমেইল পাঠানোর বদলে সরাসরি ওটিপি ফিল্ড দেখানো হচ্ছে
+      alert('মাস্টার ওটিপি ব্যবহারের জন্য প্রস্তুত।');
+      setShowOtpField(true);
     } else {
-      if (otp === '1234') { 
+      // মাস্টার ওটিপি চেক
+      if (otp === '2026') { 
         alert('সফল! আপনার পাসওয়ার্ড হলো: Azhar6677');
         setAuthView('signin');
         setShowOtpField(false);
         setOtp('');
       } else {
-        alert('ভুল ওটিপি!');
+        alert('ভুল ওটিপি! সঠিক মাস্টার কোড দিন।');
       }
     }
   };
@@ -205,14 +186,14 @@ export default function App() {
                 {showOtpField && (
                   <div className="relative">
                     <KeyRound className="absolute left-5 top-4.5 text-blue-500" size={18} />
-                    <input required placeholder="ওটিপি দিন" className="w-full pl-14 p-4.5 bg-blue-50 rounded-2xl border-2 border-blue-200 text-xl font-black tracking-widest outline-none" value={otp} onChange={e => setOtp(e.target.value)} />
+                    <input required placeholder="মাস্টার ওটিপি দিন" className="w-full pl-14 p-4.5 bg-blue-50 rounded-2xl border-2 border-blue-200 text-xl font-black tracking-widest outline-none" value={otp} onChange={e => setOtp(e.target.value)} />
                   </div>
                 )}
               </div>
             )}
 
-            <button disabled={isSendingOtp} type="submit" className="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 disabled:bg-slate-300">
-              {isSendingOtp ? 'ওটিপি পাঠানো হচ্ছে...' : (authView === 'signin' ? 'প্রবেশ করুন' : showOtpField ? 'ভেরিফাই করুন' : 'ওটিপি পাঠান')}
+            <button type="submit" className="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95">
+              {authView === 'signin' ? 'প্রবেশ করুন' : showOtpField ? 'ভেরিফাই করুন' : 'ওটিপি পাঠান'}
             </button>
           </form>
 
@@ -231,7 +212,7 @@ export default function App() {
     );
   }
 
-  // --- MAIN DASHBOARD (Your original code remains same) ---
+  // --- MAIN DASHBOARD (Rest of the features same as before) ---
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
