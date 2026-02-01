@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Phone, School, Plus, X, Trash2, Edit3, UserCircle, Save, Filter, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin } from 'lucide-react';
+import { Search, Phone, Plus, X, Trash2, Edit3, UserCircle, Save, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Helmet } from 'react-helmet'; // এটি মেটা ট্যাগের জন্য প্রয়োজন
 
 const toBn = (n: any) => n?.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]) || "০";
 const CLASSES = ['সব শ্রেণী', 'প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', 'একাদশ', 'দ্বাদশ'];
@@ -23,7 +22,11 @@ export default function App() {
   };
   const [formData, setFormData] = useState(initialForm);
 
-  useEffect(() => { fetchData(); }, []);
+  // ব্রাউজারের টাইটেল এবং অ্যাপের মেটা ট্যাগ সেট করার জন্য (ইন্সটল অপশন পেতে সাহায্য করবে)
+  useEffect(() => {
+    document.title = "Al-Azhar School Management";
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const total = Number(formData.monthly_fee) + Number(formData.exam_fee) + Number(formData.other_fee) + Number(formData.previous_dues);
@@ -93,22 +96,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-      {/* PWA মেটা ট্যাগ যা অ্যাপ ইন্সটল করতে সাহায্য করবে */}
-      <Helmet>
-        <title>Al-Azhar School Management</title>
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Al-Azhar Management" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-      </Helmet>
-
-      {/* Improved Header with Premium Logo Look */}
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }} 
-          animate={{ scale: 1, opacity: 1 }}
-          className="relative inline-block"
-        >
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative inline-block">
           <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full scale-150 animate-pulse"></div>
           <div className="relative bg-white p-1 rounded-full shadow-2xl mb-4 border-2 border-white/50 ring-4 ring-blue-400/20">
             <img src="/logo.png" alt="School Logo" className="w-24 h-24 rounded-full object-cover" />
@@ -124,7 +113,6 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto -mt-12 px-4 relative z-10">
-        {/* Search & Filter Section */}
         <div className="bg-white p-5 rounded-[2.5rem] shadow-xl shadow-blue-900/5 flex flex-col md:flex-row gap-3 mb-8 border border-white/50">
           <div className="flex-grow relative">
             <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
@@ -138,7 +126,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* Student Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((st: any) => (
             <motion.div layout key={st.id} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
@@ -176,15 +163,10 @@ export default function App() {
           ))}
         </div>
 
-        {/* Updated Footer - Single Name Only */}
         <footer className="mt-20 py-12 text-center">
           <div className="inline-flex flex-col items-center gap-3 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
             <div className="p-1 bg-blue-50 rounded-full ring-2 ring-white">
-              <img 
-                src="/gias.jpg" 
-                alt="গিয়াস উদ্দিন" 
-                className="w-16 h-16 rounded-full border-2 border-white shadow-md grayscale-[20%]"
-              />
+              <img src="/gias.jpg" alt="গিয়াস উদ্দিন" className="w-16 h-16 rounded-full border-2 border-white shadow-md grayscale-[20%]" />
             </div>
             <div className="space-y-0.5">
               <p className="text-slate-400 font-black text-[9px] uppercase tracking-[0.2em]">Designed & Developed by</p>
@@ -195,7 +177,6 @@ export default function App() {
           </div>
         </footer>
 
-        {/* Admission Form: হুবহু আগের কোড */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -210,11 +191,11 @@ export default function App() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">ব্যক্তিগত তথ্য</p>
                     <div className="space-y-1">
                       <label className="text-[12px] font-black text-slate-700 ml-1">শিক্ষার্থীর নাম (Name)</label>
-                      <input required placeholder="এম এস সাদী মিনার/এম এস ফাদি মিহাল" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
+                      <input required placeholder="নাম লিখুন" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[12px] font-black text-slate-700 ml-1">পিতার নাম (Father's Name)</label>
-                      <input required placeholder="গিয়াস উদ্দিন" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
+                      <input required placeholder="পিতার নাম লিখুন" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
@@ -267,7 +248,6 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Payment Modal */}
         <AnimatePresence>
           {showPaymentModal && selectedStudent && (
             <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
