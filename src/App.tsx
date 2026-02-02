@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, Phone, Plus, X, Trash2, Edit3, UserCircle, Save, Copy, Banknote, MessageSquareWarning, CheckCircle, MessageCircle, MapPin, LogOut, Lock, User, Mail, ShieldCheck, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// হেল্পার ফাংশন: সংখ্যাকে বাংলায় রূপান্তর
 const toBn = (n: any) => n?.toString().replace(/\d/g, (d: any) => "০১২৩৪৫৬৭৮৯"[d]) || "০";
+
 const CLASSES = ['সব শ্রেণী', 'প্লে', 'নার্সারি', '১ম', '২য়', '৩য়', '৪র্থ', '৫ম', '৬ষ্ঠ', '৭ম', '৮ম', '৯ম', '১০ম', 'একাদশ', 'দ্বাদশ'];
 
 export default function App() {
@@ -48,6 +50,7 @@ export default function App() {
     try {
       const res = await fetch('/api/auth');
       const data = await res.json();
+      // আপনার ডাটাবেস পাসওয়ার্ড Azhar6677 অনুযায়ী চেক হবে
       if (loginCreds.username === 'Al-Azhar' && loginCreds.password === data.password) {
         setIsLoggedIn(true);
       } else {
@@ -82,7 +85,7 @@ export default function App() {
       body: JSON.stringify({ newPassword, masterOtp: '2026' })
     });
     if (res.ok) {
-      alert('পাসওয়ার্ড ডাটাবেসে আপডেট হয়েছে!');
+      alert('পাসওয়ার্ড ডাটাবেসে স্থায়ীভাবে আপডেট হয়েছে!');
       setAuthView('signin');
       setNewPassword('');
     }
@@ -123,26 +126,27 @@ export default function App() {
 
   const closeForm = () => { setShowForm(false); setEditingId(null); setFormData(initialForm); };
 
+  // --- মেসেজ টেমপ্লেট লজিক ---
+  const getDueMsg = (st: any) => `আসসালামু আলাইকুম, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ থেকে জানানো যাচ্ছে যে, আপনার সন্তান ${st.name}-এর মাসিক বেতন, পরীক্ষা ফি ও অন্যান্য ফি বাবদ মোট বকেয়া ${toBn(st.dues)} টাকা। দ্রুত পরিশোধ করার জন্য অনুরোধ করা হলো। ধন্যবাদ।`;
+  
+  const getAbsentMsg = (st: any) => `আসসালামু আলাইকুম, আজ আপনার সন্তান ${st.name} (শ্রেণী: ${st.class_name}) স্কুলে উপস্থিত নেই। অনুপস্থিতির সঠিক কারণটি জানানোর জন্য অনুরোধ করা হলো। ইতি, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ।`;
+
   const copyDueMsg = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আল-আজহার ইন্টারন্যাশনাল স্কুল এন্ড কলেজ থেকে জানানো যাচ্ছে যে, আপনার সন্তান ${st.name}-এর মাসিক বেতন, পরীক্ষা ফি ও অন্যান্য ফি বাবদ মোট বকেয়া ${toBn(st.dues)} টাকা। দ্রুত পরিশোধ করার জন্য অনুরোধ করা হলো। ধন্যবাদ।`;
-    navigator.clipboard.writeText(msg);
+    navigator.clipboard.writeText(getDueMsg(st));
     alert('বকেয়া মেসেজ কপি হয়েছে!');
   };
 
   const copyAbsentMsg = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আজ আপনার সন্তান ${st.name} (শ্রেণী: ${st.class_name}) স্কুলে উপস্থিত নেই। সঠিক কারণটি জানানোর জন্য অনুরোধ করা হলো। ইতি, আল-আজহার।`;
-    navigator.clipboard.writeText(msg);
+    navigator.clipboard.writeText(getAbsentMsg(st));
     alert('অনুপস্থিতি মেসেজ কপি হয়েছে!');
   };
 
   const sendDueWhatsApp = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আপনার সন্তান ${st.name}-এর মোট বকেয়া ${toBn(st.dues)} টাকা। ধন্যবাদ।`;
-    window.open(`https://wa.me/88${st.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/88${st.phone}?text=${encodeURIComponent(getDueMsg(st))}`, '_blank');
   };
 
   const sendAbsentWhatsApp = (st: any) => {
-    const msg = `আসসালামু আলাইকুম, আজ আপনার সন্তান ${st.name} স্কুলে উপস্থিত নেই।`;
-    window.open(`https://wa.me/88${st.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/88${st.phone}?text=${encodeURIComponent(getAbsentMsg(st))}`, '_blank');
   };
 
   const filtered = students.filter((st: any) => 
@@ -221,7 +225,7 @@ export default function App() {
     );
   }
 
-  // --- MAIN DASHBOARD (Restored Original Design) ---
+  // --- MAIN DASHBOARD ---
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
@@ -241,6 +245,7 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto -mt-12 px-4 relative z-10">
+        {/* সার্চ এবং ফিল্টার */}
         <div className="bg-white p-5 rounded-[2.5rem] shadow-xl shadow-blue-900/5 flex flex-col md:flex-row gap-3 mb-8 border border-white/50">
           <div className="flex-grow relative">
             <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
@@ -254,6 +259,7 @@ export default function App() {
           </button>
         </div>
 
+        {/* স্টুডেন্ট লিস্ট কার্ডস */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((st: any) => (
             <motion.div layout key={st.id} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
@@ -274,11 +280,20 @@ export default function App() {
                 <span className="text-red-600 font-black text-2xl">৳{toBn(st.dues)}</span>
               </div>
 
+              {/* ৬টি অ্যাকশন বাটন (আপনার সর্বশেষ স্ক্রিনশট অনুযায়ী) */}
               <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => { setSelectedStudent(st); setShowPaymentModal(true); }} className="bg-emerald-50 text-emerald-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-emerald-100/50"><Banknote size={14}/>বকেয়া পরিশোধ</button>
-                <button onClick={() => copyDueMsg(st)} className="bg-amber-50 text-amber-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-amber-100"><Copy size={14}/>বকেয়া কপি</button>
-                <button onClick={() => copyAbsentMsg(st)} className="bg-rose-50 text-rose-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-100"><MessageSquareWarning size={14}/>অনুপস্থিতি কপি</button>
-                <a href={`tel:${st.phone}`} className="bg-slate-900 text-white p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 shadow-md"><Phone size={14}/>কল দিন</a>
+                <button onClick={() => { setSelectedStudent(st); setShowPaymentModal(true); }} className="bg-emerald-50 text-emerald-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-emerald-100/50">
+                  <Banknote size={14}/>বকেয়া পরিশোধ
+                </button>
+                <button onClick={() => copyDueMsg(st)} className="bg-amber-50 text-amber-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-amber-100">
+                  <Copy size={14}/>বকেয়া কপি
+                </button>
+                <button onClick={() => copyAbsentMsg(st)} className="bg-rose-50 text-rose-700 p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-100">
+                  <MessageSquareWarning size={14}/>অনুপস্থিতি কপি
+                </button>
+                <a href={`tel:${st.phone}`} className="bg-slate-900 text-white p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 shadow-md">
+                  <Phone size={14}/>কল দিন
+                </a>
                 <button onClick={() => sendDueWhatsApp(st)} className="bg-green-600 text-white p-3 rounded-xl text-[10px] font-black flex items-center justify-center gap-1.5 shadow-md shadow-green-100">
                   <MessageCircle size={14}/> বকেয়া (WhatsApp)
                 </button>
@@ -302,7 +317,7 @@ export default function App() {
           </div>
         </footer>
 
-        {/* --- Full Enrollment Form (Restored All Fields) --- */}
+        {/* ভর্তি ফরম */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -358,7 +373,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* --- Payment Modal (Restored) --- */}
+        {/* পেমেন্ট জমা মোডাল */}
         <AnimatePresence>
           {showPaymentModal && selectedStudent && (
             <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
