@@ -221,7 +221,7 @@ export default function App() {
     );
   }
 
-  // --- MAIN DASHBOARD (No Changes to Features/Forms) ---
+  // --- MAIN DASHBOARD ---
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="bg-gradient-to-b from-blue-800 to-blue-700 text-white pt-10 pb-24 px-4 text-center shadow-lg relative overflow-hidden">
@@ -312,7 +312,7 @@ export default function App() {
           </div>
         </footer>
 
-        {/* ভর্তি ফরম (Unchanged) */}
+        {/* ভর্তি ফরম (সংশোধিত: লেবেল ও নির্দিষ্ট জলছাপসহ) */}
         <AnimatePresence>
           {showForm && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -325,33 +325,71 @@ export default function App() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-4">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b pb-1">ব্যক্তিগত তথ্য</p>
-                    <input required placeholder="শিক্ষার্থীর নাম" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
-                    <input required placeholder="পিতার নাম" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
+                    
+                    {/* ছাত্র/ছাত্রীর নাম */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-slate-600 ml-1">ছাত্র/ছাত্রীর নাম</label>
+                      <input required placeholder="এম এস সাদী মিনার/এম এস ফাদি মিহাল" value={formData.name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 bg-slate-50/50" onChange={e => setFormData({...formData, name: e.target.value})} />
+                    </div>
+
+                    {/* পিতার নাম */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-slate-600 ml-1">পিতার নাম</label>
+                      <input required placeholder="গিয়াস উদ্দিন" value={formData.father_name} className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" onChange={e => setFormData({...formData, father_name: e.target.value})} />
+                    </div>
                     
                     <div className="grid grid-cols-2 gap-3">
-                      <select className="w-full p-3.5 border border-slate-200 rounded-2xl font-bold bg-slate-50/50" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                        <option>ছাত্র</option><option>ছাত্রী</option>
-                      </select>
-                      <input required type="number" placeholder="রোল নং" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.roll} onChange={e => setFormData({...formData, roll: e.target.value})} />
+                      <div className="flex flex-col gap-1">
+                         <label className="text-xs font-bold text-slate-600 ml-1">লিঙ্গ</label>
+                         <select className="w-full p-3.5 border border-slate-200 rounded-2xl font-bold bg-slate-50/50" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
+                           <option>ছাত্র</option><option>ছাত্রী</option>
+                         </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-xs font-bold text-slate-600 ml-1">রোল নং</label>
+                         <input required type="number" placeholder="রোল নং" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.roll} onChange={e => setFormData({...formData, roll: e.target.value})} />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <select className="w-full p-3.5 border border-slate-200 rounded-2xl font-bold bg-slate-50/50" value={formData.class_name} onChange={e => setFormData({...formData, class_name: e.target.value})}>
-                        {CLASSES.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <input required placeholder="মোবাইল নম্বর" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                      <div className="flex flex-col gap-1">
+                         <label className="text-xs font-bold text-slate-600 ml-1">শ্রেণী</label>
+                         <select className="w-full p-3.5 border border-slate-200 rounded-2xl font-bold bg-slate-50/50" value={formData.class_name} onChange={e => setFormData({...formData, class_name: e.target.value})}>
+                           {CLASSES.slice(1).map(c => <option key={c} value={c}>{c}</option>)}
+                         </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-xs font-bold text-slate-600 ml-1">মোবাইল নম্বর</label>
+                         <input required placeholder="মোবাইল নম্বর" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none bg-slate-50/50" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                      </div>
                     </div>
                     
-                    <textarea placeholder="ঠিকানা" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none h-20 resize-none bg-slate-50/50" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                    {/* ঠিকানা */}
+                    <div className="flex flex-col gap-1">
+                       <label className="text-xs font-bold text-slate-600 ml-1">ঠিকানা</label>
+                       <textarea placeholder="নদোনা, সোনাইমুড়ী, নোয়াখালী।" className="w-full p-3.5 border border-slate-200 rounded-2xl outline-none h-20 resize-none bg-slate-50/50" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                    </div>
                   </div>
 
                   <div className="bg-blue-50/50 p-5 rounded-[2rem] border border-blue-100 space-y-4">
                     <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest border-b border-blue-100/50 pb-1">ফি এবং বকেয়া</p>
                     <div className="grid grid-cols-2 gap-2">
-                      <input type="number" placeholder="বেতন" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.monthly_fee || ''} onChange={e => setFormData({...formData, monthly_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="পরীক্ষা ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.exam_fee || ''} onChange={e => setFormData({...formData, exam_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="অন্যান্য ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.other_fee || ''} onChange={e => setFormData({...formData, other_fee: Number(e.target.value)})} />
-                      <input type="number" placeholder="পূর্বের বকেয়া" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.previous_dues || ''} onChange={e => setFormData({...formData, previous_dues: Number(e.target.value)})} />
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 ml-1">বেতন</label>
+                        <input type="number" placeholder="বেতন" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.monthly_fee || ''} onChange={e => setFormData({...formData, monthly_fee: Number(e.target.value)})} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 ml-1">পরীক্ষা ফি</label>
+                        <input type="number" placeholder="পরীক্ষা ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.exam_fee || ''} onChange={e => setFormData({...formData, exam_fee: Number(e.target.value)})} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 ml-1">অন্যান্য ফি</label>
+                        <input type="number" placeholder="অন্যান্য ফি" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.other_fee || ''} onChange={e => setFormData({...formData, other_fee: Number(e.target.value)})} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 ml-1">পূর্বের বকেয়া</label>
+                        <input type="number" placeholder="পূর্বের বকেয়া" className="p-3 border border-white rounded-xl outline-none text-sm" value={formData.previous_dues || ''} onChange={e => setFormData({...formData, previous_dues: Number(e.target.value)})} />
+                      </div>
                     </div>
                     <div className="p-4 bg-white rounded-2xl flex justify-between items-center shadow-sm border border-blue-100">
                       <span className="font-bold text-slate-600">মোট বকেয়া:</span>
@@ -368,7 +406,7 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* পেমেন্ট জমা মোডাল (Unchanged) */}
+        {/* পেমেন্ট জমা মোডাল (অপরিবর্তিত) */}
         <AnimatePresence>
           {showPaymentModal && selectedStudent && (
             <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
